@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Platform design tokens ─────────────────────────────────────────────────
+   These are the IL defaults. They get overridden per-tenant at runtime
+   by injecting tenant_branding values from the DB into a <style> tag.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* IL brand colours (overridable per tenant) */
+  --color-primary:   91 110 255;   /* #5B6EFF — violet-blue */
+  --color-secondary: 168 85 247;   /* #A855F7 — purple */
+  --color-accent:    5 150 105;    /* #059669 — green */
+
+  /* Fonts (overridable per tenant) */
+  --font-heading: 'DM Serif Display';
+  --font-body:    'IBM Plex Sans';
+
+  /* Semantic surface tokens */
+  --bg:          248 249 252;
+  --surface:     255 255 255;
+  --surface-2:   242 243 250;
+  --border:      216 218 232;
+  --text-1:      13 14 26;
+  --text-2:      61 63 92;
+  --text-3:      124 126 160;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          13 17 23;
+    --surface:     20 27 38;
+    --surface-2:   26 34 51;
+    --border:      35 44 61;
+    --text-1:      232 234 246;
+    --text-2:      155 163 196;
+    --text-3:      90 98 128;
+  }
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--text-1));
+  font-family: var(--font-body), 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 3px;
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* ── Typography utilities ────────────────────────────────────────────────── */
+.font-heading {
+  font-family: var(--font-heading), 'DM Serif Display', Georgia, serif;
+}
