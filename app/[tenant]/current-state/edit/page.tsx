@@ -10,7 +10,8 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useParams } from 'next/navigation'
-import { saveCurrentState, CATEGORIES, getCurrentState } from '../actions'
+import { saveCurrentState, getCurrentState } from '../actions'
+import { CATEGORIES } from '../types'
 
 // ─── Score helpers ────────────────────────────────────────────────
 

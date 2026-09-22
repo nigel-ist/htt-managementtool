@@ -7,7 +7,8 @@
 
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getRoles, type Role } from './actions'
+import { getRoles } from './actions'
+import type { Role } from './types'
 
 interface RolesPageProps {
   params: { tenant: string }

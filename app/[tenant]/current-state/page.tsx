@@ -12,7 +12,8 @@
 
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getCurrentState, CATEGORIES, type CurrentStateData } from './actions'
+import { getCurrentState } from './actions'
+import { CATEGORIES, type CurrentStateData } from './types'
 
 interface CurrentStatePageProps {
   params: { tenant: string }

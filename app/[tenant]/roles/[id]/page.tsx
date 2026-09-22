@@ -9,7 +9,8 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useParams, notFound } from 'next/navigation'
-import { getRole, updateRole, deleteRole, LEVELS, type Role, type RaciItem } from '../actions'
+import { getRole, updateRole, deleteRole } from '../actions'
+import { LEVELS, type Role, type RaciItem } from '../types'
 
 let raciCounter = 0
 function newRaciId() { return `raci_${++raciCounter}_${Date.now()}` }

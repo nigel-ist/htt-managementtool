@@ -32,14 +32,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
-import {
-  LEVELS,
-  type RaciItem,
-  type Role,
-} from './types'
-
-export type { RaciItem, Role }
-export { LEVELS }
+import { LEVELS, type RaciItem, type Role } from './types'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 

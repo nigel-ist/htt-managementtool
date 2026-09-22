@@ -29,14 +29,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
-import {
-  CATEGORIES,
-  type DimensionScore,
-  type CurrentStateData,
-} from './types'
-
-export type { DimensionScore, CurrentStateData }
-export { CATEGORIES }
+import { CATEGORIES, type DimensionScore, type CurrentStateData } from './types'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
