@@ -10,7 +10,7 @@ import { MODULE_KEYS } from '@/lib/types/database'
 import { z } from 'zod'
 
 const ModulesSchema = z.object({
-  enabled_modules: z.array(z.enum(MODULE_KEYS as [string, ...string[]])),
+  enabled_modules: z.array(z.enum([...MODULE_KEYS] as [string, ...string[]])),
 })
 
 export async function PUT(
