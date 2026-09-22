@@ -9,7 +9,7 @@
  */
 import Link from 'next/link'
 import { getLatestBaseline, getAllBaselines } from './actions'
-import type { CapabilityScores, HttBaseline } from './actions'
+import type { CapabilityScores, HttBaseline } from './types'
 
 interface HttPageProps {
   params: { tenant: string }

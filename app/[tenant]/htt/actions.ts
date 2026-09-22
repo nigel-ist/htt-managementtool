@@ -10,8 +10,6 @@ import {
   type HttBaseline,
 } from './types'
 
-export type { CapabilityScores, HttBaseline }
-export { HTT_CAPABILITIES }
 
 async function getTenantId(tenantSlug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
