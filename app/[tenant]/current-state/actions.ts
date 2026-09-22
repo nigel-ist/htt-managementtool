@@ -29,58 +29,14 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import {
+  CATEGORIES,
+  type DimensionScore,
+  type CurrentStateData,
+} from './types'
 
-// ─── Types ────────────────────────────────────────────────────────
-
-export interface DimensionScore {
-  category: string
-  dimension: string
-  score: number
-  notes?: string | null
-}
-
-export interface CurrentStateData {
-  scores: DimensionScore[]
-  updatedAt: string | null
-}
-
-// ─── Dimension definitions ────────────────────────────────────────
-
-export const CATEGORIES = [
-  {
-    key: 'strategic',
-    label: 'Strategic',
-    dimensions: [
-      'Vision Clarity',
-      'Market Position',
-      'Competitive Advantage',
-      'Strategic Alignment',
-      'Growth Strategy',
-    ],
-  },
-  {
-    key: 'operational',
-    label: 'Operational',
-    dimensions: [
-      'Process Efficiency',
-      'Team Capability',
-      'Technology & Systems',
-      'Resource Allocation',
-      'Execution Quality',
-    ],
-  },
-  {
-    key: 'financial',
-    label: 'Financial',
-    dimensions: [
-      'Revenue Health',
-      'Cost Management',
-      'Cash Flow',
-      'Profitability',
-      'Financial Planning',
-    ],
-  },
-]
+export type { DimensionScore, CurrentStateData }
+export { CATEGORIES }
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
