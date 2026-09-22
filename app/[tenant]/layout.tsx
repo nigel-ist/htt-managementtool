@@ -12,6 +12,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import type { TenantBranding } from '@/lib/types/database'
+import { getAccessibleModules } from '@/lib/modules/access'
 import Sidebar from '@/components/nav/sidebar'
 import Topbar from '@/components/nav/topbar'
 
@@ -109,6 +110,14 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
     redirect('/')
   }
 
+  // Compute which modules this user can navigate to
+  const accessibleModules = await getAccessibleModules(
+    tenantData.tenantId,
+    claims.sub,
+    claims.role,
+    isIlAdmin
+  )
+
   const brandingCss = buildBrandingCss(tenantData.branding)
 
   // Build Google Fonts URL if custom fonts are set
@@ -139,6 +148,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
           tenantName={tenantData.tenantName}
           userRole={claims.role ?? undefined}
           isIlAdmin={isIlAdmin}
+          accessibleModules={Array.from(accessibleModules)}
         />
         <div className="flex-1 flex flex-col min-w-0">
           <Topbar
