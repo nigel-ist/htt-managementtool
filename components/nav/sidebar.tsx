@@ -2,14 +2,8 @@
 
 /**
  * Tenant workspace sidebar.
- *
- * Visibility is controlled by two mechanisms:
- *  - `moduleKey`  — the server layout pre-computes which modules this user
- *                   can access (role defaults + user overrides) and passes
- *                   the set as `accessibleModules`. Items with a moduleKey
- *                   are hidden if the key isn't in that set.
- *  - `minRole`    — hardcoded permission gate for admin-only items
- *                   (Settings, Invitations) that aren't content modules.
+ * Renders the nav links for the active tenant.
+ * Links are determined by the user's role; IL admins see everything.
  */
 import { usePathname } from 'next/navigation'
 import type { MemberRole } from '@/lib/types/database'
@@ -19,15 +13,13 @@ interface SidebarProps {
   tenantName: string
   userRole?: MemberRole
   isIlAdmin?: boolean
-  accessibleModules: string[]
 }
 
 interface NavItem {
   href: string
   label: string
   icon: string
-  moduleKey?: string   // gates by module access (computed server-side)
-  minRole?: MemberRole // gates by role regardless of module config
+  minRole?: MemberRole
 }
 
 function buildNavItems(slug: string): NavItem[] {
@@ -40,80 +32,64 @@ function buildNavItems(slug: string): NavItem[] {
     {
       href: `/${slug}/products`,
       label: 'Products',
-      moduleKey: 'products',
       icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
     },
     {
       href: `/${slug}/innovations`,
       label: 'Innovations',
-      moduleKey: 'innovations',
       icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
     },
     {
       href: `/${slug}/staff`,
       label: 'Staff Skills',
-      moduleKey: 'staff_skills',
       icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
     },
     {
       href: `/${slug}/current-state`,
       label: 'Current State',
-      moduleKey: 'current_state',
       icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     },
     {
       href: `/${slug}/future-state`,
       label: 'Future State',
-      moduleKey: 'future_state',
       icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122',
     },
     {
       href: `/${slug}/roles`,
       label: 'Roles',
-      moduleKey: 'structure',
       icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0',
     },
     {
       href: `/${slug}/invitations`,
       label: 'Invitations',
-      minRole: 'admin',
       icon: 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
+      minRole: 'admin' as MemberRole,
     },
     {
       href: `/${slug}/htt`,
       label: 'How to Think',
-      moduleKey: 'htt',
       icon: 'M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a14.974 14.974 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18',
     },
     {
       href: `/${slug}/settings`,
       label: 'Settings',
-      minRole: 'admin',
       icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+      minRole: 'admin',
     },
   ]
 }
 
-export default function Sidebar({ tenantSlug, tenantName, userRole, isIlAdmin, accessibleModules }: SidebarProps) {
+export default function Sidebar({ tenantSlug, tenantName, userRole, isIlAdmin }: SidebarProps) {
   const pathname = usePathname()
   const navItems = buildNavItems(tenantSlug)
-  const moduleSet = new Set(accessibleModules)
 
   function isVisible(item: NavItem): boolean {
     if (isIlAdmin) return true
-
-    // Module gate — server computed
-    if (item.moduleKey && !moduleSet.has(item.moduleKey)) return false
-
-    // Role gate — hardcoded for admin-only UI items
-    if (item.minRole) {
-      const roleOrder: MemberRole[] = ['viewer', 'editor', 'admin', 'owner']
-      const userIdx = roleOrder.indexOf(userRole ?? 'viewer')
-      const minIdx = roleOrder.indexOf(item.minRole)
-      if (userIdx < minIdx) return false
-    }
-
-    return true
+    if (!item.minRole) return true
+    const roleOrder: MemberRole[] = ['viewer', 'editor', 'admin', 'owner']
+    const userIdx = roleOrder.indexOf(userRole ?? 'viewer')
+    const minIdx = roleOrder.indexOf(item.minRole)
+    return userIdx >= minIdx
   }
 
   function isActive(href: string): boolean {

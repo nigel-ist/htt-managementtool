@@ -1,46 +1,97 @@
-/**
- * Tenant dashboard — the home screen for a tenant's workspace.
- *
- * Phase 1: Shows a summary card grid (products, innovations, staff skills)
- * with real counts pulled from the DB. Empty states guide users to add data.
- */
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
+import Link from 'next/link'
 
 interface DashboardPageProps {
   params: { tenant: string }
 }
 
-interface StatCard {
-  label: string
-  count: number
-  description: string
-  href: string
-  emptyLabel: string
-}
-
 async function getDashboardStats(tenantId: string) {
   const supabase = await createClient()
 
-  const [productsRes, innovationsRes, skillsRes] = await Promise.all([
-    supabase.from('products').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    supabase.from('innovations').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    supabase.from('staff_skills').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-  ])
+  const tables = [
+    'products', 'innovations', 'staff_skills', 'htt_baselines',
+    'current_state_scores', 'future_state', 'roles',
+    'ideas', 'market_intel', 'competitors',
+    'finance_entries', 'compensation_bands', 'surveys',
+    'board_meetings', 'relationships', 'downloads',
+  ] as const
 
-  return {
-    products: productsRes.count ?? 0,
-    innovations: innovationsRes.count ?? 0,
-    staffSkills: skillsRes.count ?? 0,
+  const results = await Promise.all(
+    tables.map(t =>
+      supabase.from(t).select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId)
+    )
+  )
+
+  const counts = Object.fromEntries(tables.map((t, i) => [t, results[i].count ?? 0]))
+
+  // Also get finance totals
+  const { data: financeRows } = await supabase
+    .from('finance_entries')
+    .select('category, amount')
+    .eq('tenant_id', tenantId)
+
+  let revenue = 0, expenses = 0
+  for (const row of financeRows ?? []) {
+    if (row.category === 'revenue') revenue += Number(row.amount)
+    else if (row.category === 'expense') expenses += Number(row.amount)
   }
+
+  return { counts, revenue, expenses }
 }
 
-async function StatsGrid({ tenantSlug }: { tenantSlug: string }) {
+const MODULE_GROUPS = [
+  {
+    title: 'Core',
+    color: 'border-blue-200 dark:border-blue-800',
+    accent: 'text-blue-600 dark:text-blue-400',
+    modules: [
+      { key: 'products', label: 'Products', route: 'products', icon: '📦', desc: 'Product catalogue' },
+      { key: 'innovations', label: 'Innovations', route: 'innovations', icon: '💡', desc: 'Ideas & initiatives' },
+      { key: 'staff_skills', label: 'Staff Skills', route: 'staff', icon: '👥', desc: 'Team capabilities' },
+      { key: 'htt_baselines', label: 'HTT', route: 'htt', icon: '🧠', desc: 'How to Think assessments' },
+    ],
+  },
+  {
+    title: 'Strategy',
+    color: 'border-purple-200 dark:border-purple-800',
+    accent: 'text-purple-600 dark:text-purple-400',
+    modules: [
+      { key: 'current_state_scores', label: 'Current State', route: 'current-state', icon: '📊', desc: 'Capability scores' },
+      { key: 'future_state', label: 'Future State', route: 'future-state', icon: '🎯', desc: 'Strategic goals' },
+      { key: 'roles', label: 'Roles', route: 'roles', icon: '🏷️', desc: 'Role definitions' },
+      { key: 'ideas', label: 'Ideas', route: 'ideas', icon: '✨', desc: 'Submitted ideas' },
+    ],
+  },
+  {
+    title: 'Market',
+    color: 'border-amber-200 dark:border-amber-800',
+    accent: 'text-amber-600 dark:text-amber-400',
+    modules: [
+      { key: 'market_intel', label: 'Market Intel', route: 'market-intel', icon: '📡', desc: 'Intelligence entries' },
+      { key: 'competitors', label: 'Competition', route: 'competition', icon: '⚡', desc: 'Tracked competitors' },
+      { key: 'surveys', label: 'Surveys', route: 'surveys', icon: '📋', desc: 'Feedback surveys' },
+      { key: 'relationships', label: 'Relationships', route: 'relationships', icon: '🤝', desc: 'Network contacts' },
+    ],
+  },
+  {
+    title: 'Operations',
+    color: 'border-emerald-200 dark:border-emerald-800',
+    accent: 'text-emerald-600 dark:text-emerald-400',
+    modules: [
+      { key: 'finance_entries', label: 'Finance', route: 'finance', icon: '💰', desc: 'Financial entries' },
+      { key: 'compensation_bands', label: 'Compensation', route: 'compensation', icon: '💼', desc: 'Salary bands' },
+      { key: 'board_meetings', label: 'Board', route: 'board', icon: '🏛️', desc: 'Board meetings' },
+      { key: 'downloads', label: 'Downloads', route: 'downloads', icon: '📁', desc: 'Shared files' },
+    ],
+  },
+]
+
+async function DashboardContent({ tenantSlug }: { tenantSlug: string }) {
   const claims = await getServerJWTClaims()
   if (!claims?.tenant_id && !claims?.is_il_admin) return null
 
-  // For IL admins viewing a tenant, look up the tenant_id by slug
   const supabase = await createClient()
   let tenantId = claims.tenant_id
 
@@ -51,111 +102,119 @@ async function StatsGrid({ tenantSlug }: { tenantSlug: string }) {
 
   if (!tenantId) return null
 
-  const stats = await getDashboardStats(tenantId)
+  const { counts, revenue, expenses } = await getDashboardStats(tenantId)
 
-  const cards: StatCard[] = [
-    {
-      label: 'Products',
-      count: stats.products,
-      description: 'Active products in your catalogue',
-      href: `/${tenantSlug}/products`,
-      emptyLabel: 'Add your first product',
-    },
-    {
-      label: 'Innovations',
-      count: stats.innovations,
-      description: 'Ideas and initiatives in the pipeline',
-      href: `/${tenantSlug}/innovations`,
-      emptyLabel: 'Log your first innovation',
-    },
-    {
-      label: 'Staff Skills',
-      count: stats.staffSkills,
-      description: 'Skill records across your team',
-      href: `/${tenantSlug}/staff`,
-      emptyLabel: 'Add team skill data',
-    },
-  ]
+  const totalEntries = Object.values(counts).reduce((a, b) => a + b, 0)
+  const net = revenue - expenses
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-      {cards.map(card => (
-        <a
-          key={card.label}
-          href={card.href}
-          className="block bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-lg p-5 hover:border-[rgb(var(--color-primary)/0.4)] transition-colors group"
-        >
-          <div className="text-3xl font-semibold text-[rgb(var(--text-1))] mb-1 tabular-nums">
-            {card.count}
+    <div className="space-y-8">
+      {/* Top summary tiles */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs text-[rgb(var(--text-2))] mb-1">Total Records</p>
+          <p className="text-2xl font-bold text-[rgb(var(--text-1))] tabular-nums">{totalEntries}</p>
+          <p className="text-xs text-[rgb(var(--text-3))]">across all modules</p>
+        </div>
+        <div className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs text-[rgb(var(--text-2))] mb-1">Revenue</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            {revenue > 0 ? `$${(revenue / 1000).toFixed(0)}k` : '—'}
+          </p>
+          <p className="text-xs text-[rgb(var(--text-3))]">total logged</p>
+        </div>
+        <div className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs text-[rgb(var(--text-2))] mb-1">Expenses</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 tabular-nums">
+            {expenses > 0 ? `$${(expenses / 1000).toFixed(0)}k` : '—'}
+          </p>
+          <p className="text-xs text-[rgb(var(--text-3))]">total logged</p>
+        </div>
+        <div className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs text-[rgb(var(--text-2))] mb-1">Net</p>
+          <p className={`text-2xl font-bold tabular-nums ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+            {revenue > 0 || expenses > 0 ? `${net >= 0 ? '+' : ''}$${(net / 1000).toFixed(0)}k` : '—'}
+          </p>
+          <p className="text-xs text-[rgb(var(--text-3))]">revenue minus expenses</p>
+        </div>
+      </div>
+
+      {/* Module groups */}
+      {MODULE_GROUPS.map((group) => (
+        <div key={group.title}>
+          <h2 className={`text-xs font-semibold uppercase tracking-widest mb-3 ${group.accent}`}>{group.title}</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {group.modules.map((mod) => {
+              const count = counts[mod.key as keyof typeof counts] ?? 0
+              return (
+                <Link
+                  key={mod.key}
+                  href={`/${tenantSlug}/${mod.route}`}
+                  className={`block p-4 rounded-xl border bg-[rgb(var(--surface))] hover:border-[rgb(var(--accent))] transition-colors ${group.color}`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-xl">{mod.icon}</span>
+                    <span className="text-2xl font-bold text-[rgb(var(--text-1))] tabular-nums">{count}</span>
+                  </div>
+                  <p className="text-sm font-medium text-[rgb(var(--text-1))]">{mod.label}</p>
+                  <p className="text-xs text-[rgb(var(--text-3))]">{mod.desc}</p>
+                </Link>
+              )
+            })}
           </div>
-          <div className="text-sm font-medium text-[rgb(var(--text-1))] mb-0.5 group-hover:text-[rgb(var(--color-primary))] transition-colors">
-            {card.label}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+            <div className="h-3 w-20 bg-[rgb(var(--border))] rounded mb-2" />
+            <div className="h-8 w-16 bg-[rgb(var(--border))] rounded mb-1" />
+            <div className="h-2 w-24 bg-[rgb(var(--border))] rounded" />
           </div>
-          <div className="text-xs text-[rgb(var(--text-3))]">
-            {card.count === 0 ? card.emptyLabel : card.description}
+        ))}
+      </div>
+      {[1,2,3,4].map(g => (
+        <div key={g}>
+          <div className="h-3 w-20 bg-[rgb(var(--border))] rounded mb-3" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+                <div className="h-6 w-6 bg-[rgb(var(--border))] rounded mb-2" />
+                <div className="h-4 w-16 bg-[rgb(var(--border))] rounded mb-1" />
+                <div className="h-3 w-24 bg-[rgb(var(--border))] rounded" />
+              </div>
+            ))}
           </div>
-        </a>
+        </div>
       ))}
     </div>
   )
 }
 
 export default async function DashboardPage({ params }: DashboardPageProps) {
-  const { tenant: tenantSlug } = params
+  const { tenant: tenantSlug } = await Promise.resolve(params)
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="font-heading text-2xl text-[rgb(var(--text-1))] mb-1">Dashboard</h1>
-        <p className="text-sm text-[rgb(var(--text-3))]">
-          Overview of your workspace
-        </p>
+        <h1 className="text-2xl font-semibold text-[rgb(var(--text-1))]">Dashboard</h1>
+        <p className="text-sm text-[rgb(var(--text-2))] mt-0.5">Overview across all modules</p>
       </div>
 
-      <Suspense fallback={
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-lg p-5 animate-pulse">
-              <div className="h-8 w-12 bg-[rgb(var(--surface-2))] rounded mb-2" />
-              <div className="h-4 w-20 bg-[rgb(var(--surface-2))] rounded mb-1" />
-              <div className="h-3 w-32 bg-[rgb(var(--surface-2))] rounded" />
-            </div>
-          ))}
-        </div>
-      }>
-        <StatsGrid tenantSlug={tenantSlug} />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent tenantSlug={tenantSlug} />
       </Suspense>
-
-      {/* Getting started guide — shown until tenant has data */}
-      <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-lg p-6">
-        <h2 className="font-semibold text-[rgb(var(--text-1))] mb-4">Getting started</h2>
-        <ol className="space-y-3">
-          {[
-            { step: '1', label: 'Add your products', detail: 'Build out your product catalogue so the team can see what you offer.', href: `/${tenantSlug}/products` },
-            { step: '2', label: 'Log innovations', detail: 'Capture ideas and initiatives — from early concept through to delivery.', href: `/${tenantSlug}/innovations` },
-            { step: '3', label: 'Map staff skills', detail: 'Record the capabilities across your team to identify gaps and strengths.', href: `/${tenantSlug}/staff` },
-          ].map(item => (
-            <li key={item.step} className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] text-xs font-semibold flex items-center justify-center mt-0.5">
-                {item.step}
-              </span>
-              <div>
-                <a
-                  href={item.href}
-                  className="text-sm font-medium text-[rgb(var(--text-1))] hover:text-[rgb(var(--color-primary))] transition-colors"
-                >
-                  {item.label}
-                </a>
-                <p className="text-xs text-[rgb(var(--text-3))] mt-0.5">{item.detail}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
     </div>
   )
 }
 
-export function generateMetadata({ params }: DashboardPageProps) {
+export function generateMetadata() {
   return { title: 'Dashboard' }
 }
