@@ -1,3 +1,5 @@
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import Link from 'next/link'
 import { getIntelEntries } from './actions'
 import { CATEGORY_META } from './types'
@@ -7,7 +9,10 @@ interface Props { params: { tenant: string } }
 
 export default async function MarketIntelPage({ params }: Props) {
   const { tenant: slug } = params
-  const entries = await getIntelEntries(slug)
+  const [entries, httStage] = await Promise.all([
+    getIntelEntries(slug),
+    getHttStageForUser(slug),
+  ])
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -44,6 +49,18 @@ export default async function MarketIntelPage({ params }: Props) {
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* HTT Coach */}
+      {httStage != null && (
+        <div className="mt-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-[rgb(var(--text-1))]">HTT Coach</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 font-medium">Market thinking</span>
+          </div>
+          <p className="text-xs text-[rgb(var(--text-3))] mb-4">Stage-aware coaching for analysing market signals, separating noise from signal, and identifying strategic implications.</p>
+          <HttCoach tenantSlug={slug} stage={httStage} moduleContext="market_intel" />
         </div>
       )}
     </div>

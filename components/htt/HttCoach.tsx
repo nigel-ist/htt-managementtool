@@ -18,7 +18,7 @@ interface Message {
 
 interface HttCoachProps {
   tenantSlug: string
-  stage: number
+  stage?: number
   moduleContext?: string
 }
 
@@ -30,7 +30,7 @@ export default function HttCoach({ tenantSlug, stage, moduleContext = 'htt' }: H
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const stageName = HTT_STAGE_NAMES[stage] ?? 'Unknown'
+  const stageName = stage != null ? (HTT_STAGE_NAMES[stage] ?? 'Unknown') : null
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -140,7 +140,9 @@ export default function HttCoach({ tenantSlug, stage, moduleContext = 'htt' }: H
       <div className="px-4 py-3 border-b border-[rgb(var(--border))] flex items-center justify-between">
         <div>
           <span className="text-sm font-medium text-[rgb(var(--text-1))]">HTT Coach</span>
-          <span className="ml-2 text-xs text-[rgb(var(--text-3))]">Stage {stage} · {stageName}</span>
+          {stage != null && stageName != null && (
+            <span className="ml-2 text-xs text-[rgb(var(--text-3))]">Stage {stage} · {stageName}</span>
+          )}
         </div>
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] font-medium uppercase tracking-wide">
           AI

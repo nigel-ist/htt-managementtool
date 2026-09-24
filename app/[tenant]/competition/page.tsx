@@ -1,10 +1,15 @@
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { getCompetitors } from './actions'
 import { TIER_META } from './types'
 import Link from 'next/link'
 
 export default async function CompetitionPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const competitors = await getCompetitors(tenant)
+  const [competitors, httStage] = await Promise.all([
+    getCompetitors(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -82,6 +87,18 @@ export default async function CompetitionPage({ params }: { params: { tenant: st
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* HTT Coach */}
+      {httStage != null && (
+        <div className="mt-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-[rgb(var(--text-1))]">HTT Coach</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 font-medium">Competitive thinking</span>
+          </div>
+          <p className="text-xs text-[rgb(var(--text-3))] mb-4">Stage-aware coaching for competitive analysis, threat assessment, and strategic positioning.</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="competition" />
         </div>
       )}
     </div>

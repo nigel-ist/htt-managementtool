@@ -8,6 +8,8 @@
  * On narrow screens the columns stack vertically.
  */
 import Link from 'next/link'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { notFound } from 'next/navigation'
 import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
 
@@ -68,7 +70,10 @@ async function getInnovations(tenantSlug: string): Promise<Innovation[] | null> 
 
 export default async function InnovationsPage({ params }: InnovationsPageProps) {
   const { tenant: tenantSlug } = params
-  const innovations = await getInnovations(tenantSlug)
+  const [innovations, httStage] = await Promise.all([
+    getInnovations(tenantSlug),
+    getHttStageForUser(tenantSlug),
+  ])
 
   if (innovations === null) notFound()
 
@@ -192,6 +197,18 @@ export default async function InnovationsPage({ params }: InnovationsPageProps) 
             })}
           </div>
         </>
+      )}
+
+      {/* HTT Coach */}
+      {httStage != null && (
+        <div className="mt-10 bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-[rgb(var(--fg))]">HTT Coach</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 font-medium">Innovation thinking</span>
+          </div>
+          <p className="text-xs text-[rgb(var(--fg-muted))] mb-4">Stage-aware coaching for innovation decisions, risk framing, and opportunity analysis.</p>
+          <HttCoach tenantSlug={tenantSlug} stage={httStage} moduleContext="innovations" />
+        </div>
       )}
     </div>
   )
