@@ -1,6 +1,7 @@
 import { getProducts } from './actions'
 import { PRODUCT_TYPES, TYPE_META } from './types'
 import Link from 'next/link'
+import ProductAnalysisPanel from './analysis-panel'
 
 export default async function ProductsPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
@@ -69,6 +70,8 @@ export default async function ProductsPage({ params }: { params: { tenant: strin
           })}
         </div>
       )}
+
+      <ProductAnalysisPanel tenantSlug={tenant} products={products} />
     </div>
   )
 }
