@@ -1,4 +1,5 @@
 import HttCoach from '@/components/htt/HttCoach'
+import FinanceAnalysisPanel from './analysis-panel'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import { getFinanceEntries } from './actions'
 import { CATEGORY_META, PERIOD_META } from './types'
@@ -100,6 +101,8 @@ export default async function FinancePage({ params }: { params: { tenant: string
           </div>
         </div>
       )}
+
+      <FinanceAnalysisPanel tenantSlug={tenant} entries={entries} />
 
       {/* HTT Coach */}
       {httStage != null && (
