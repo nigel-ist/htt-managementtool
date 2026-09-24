@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
+import type { Product } from './types'
 
 async function getTenantId(tenantSlug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
@@ -14,6 +15,41 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   const supabase = await createClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   return data?.id ?? null
+}
+
+export async function getProducts(tenantSlug: string): Promise<Product[]> {
+  const tenantId = await getTenantId(tenantSlug)
+  if (!tenantId) return []
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('[getProducts]', error)
+    return []
+  }
+  return data ?? []
+}
+
+export async function getProduct(tenantSlug: string, productId: string): Promise<Product | null> {
+  const tenantId = await getTenantId(tenantSlug)
+  if (!tenantId) return null
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', productId)
+    .eq('tenant_id', tenantId)
+    .single()
+
+  if (error) return null
+  return data
 }
 
 export async function createProduct(tenantSlug: string, formData: FormData) {
