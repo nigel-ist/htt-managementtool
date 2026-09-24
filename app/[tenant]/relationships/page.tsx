@@ -1,10 +1,15 @@
 import { getRelationships } from './actions'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { CATEGORY_META } from './types'
 import Link from 'next/link'
 
 export default async function RelationshipsPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const relationships = await getRelationships(tenant)
+  const [relationships, httStage] = await Promise.all([
+    getRelationships(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -53,6 +58,13 @@ export default async function RelationshipsPage({ params }: { params: { tenant: 
               </Link>
             )
           })}
+        </div>
+      )}
+    
+      {httStage != null && (
+        <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Network thinking</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="relationship_network" />
         </div>
       )}
     </div>

@@ -1,4 +1,6 @@
 import { getCompensationBands } from './actions'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { EMPLOYMENT_META } from './types'
 import Link from 'next/link'
 
@@ -8,7 +10,10 @@ function fmt(n: number, currency: string) {
 
 export default async function CompensationPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const bands = await getCompensationBands(tenant)
+  const [bands, httStage] = await Promise.all([
+    getCompensationBands(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -64,6 +69,13 @@ export default async function CompensationPage({ params }: { params: { tenant: s
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+    
+      {httStage != null && (
+        <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Compensation thinking</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="compensation" />
         </div>
       )}
     </div>

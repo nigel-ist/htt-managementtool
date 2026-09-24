@@ -1,10 +1,15 @@
 import { getBoardMeetings } from './actions'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { TYPE_META } from './types'
 import Link from 'next/link'
 
 export default async function BoardPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const meetings = await getBoardMeetings(tenant)
+  const [meetings, httStage] = await Promise.all([
+    getBoardMeetings(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -50,6 +55,13 @@ export default async function BoardPage({ params }: { params: { tenant: string }
               </Link>
             )
           })}
+        </div>
+      )}
+    
+      {httStage != null && (
+        <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Governance thinking</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="board_management" />
         </div>
       )}
     </div>

@@ -8,6 +8,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getRoles } from './actions'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import type { Role } from './types'
 
 interface RolesPageProps {
@@ -69,7 +71,10 @@ function RoleCard({ role, tenantSlug }: { role: Role; tenantSlug: string }) {
 
 export default async function RolesPage({ params }: RolesPageProps) {
   const { tenant: tenantSlug } = params
-  const roles = await getRoles(tenantSlug)
+  const [roles, httStage] = await Promise.all([
+    getRoles(tenantSlug),
+    getHttStageForUser(tenantSlug),
+  ])
 
   if (roles === null) notFound()
 
@@ -155,6 +160,13 @@ export default async function RolesPage({ params }: RolesPageProps) {
               </div>
             </section>
           )}
+        </div>
+      )}
+    
+      {httStage != null && (
+        <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Role thinking</p>
+          <HttCoach tenantSlug={tenantSlug} stage={httStage} moduleContext="roles" />
         </div>
       )}
     </div>
