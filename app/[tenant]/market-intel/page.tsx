@@ -2,6 +2,7 @@ import HttCoach from '@/components/htt/HttCoach'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import Link from 'next/link'
 import { getIntelEntries } from './actions'
+import MarketIntelAnalysisPanel from './analysis-panel'
 import { CATEGORY_META } from './types'
 
 export const metadata = { title: 'Market Intel' }
@@ -51,6 +52,8 @@ export default async function MarketIntelPage({ params }: Props) {
           })}
         </div>
       )}
+
+      <MarketIntelAnalysisPanel tenantSlug={slug} entries={entries} />
 
       {/* HTT Coach */}
       {httStage != null && (

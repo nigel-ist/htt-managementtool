@@ -13,6 +13,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCurrentState } from './actions'
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { CATEGORIES, type CurrentStateData } from './types'
 import CurrentStateSummary from './summary-panel'
 
@@ -125,7 +127,10 @@ function CategoryCard({
 
 export default async function CurrentStatePage({ params }: CurrentStatePageProps) {
   const { tenant: tenantSlug } = params
-  const data = await getCurrentState(tenantSlug)
+  const [data, httStage] = await Promise.all([
+    getCurrentState(tenantSlug),
+    getHttStageForUser(tenantSlug),
+  ])
 
   if (data === null) notFound()
 
@@ -230,5 +235,12 @@ export default async function CurrentStatePage({ params }: CurrentStatePageProps
       )}
       {hasScores && <CurrentStateSummary tenantSlug={tenantSlug} scores={data.scores} />}
     </div>
-  )
+
+      {httStage != null && (
+        <div className="mt-8 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Capability thinking</p>
+          <HttCoach tenantSlug={tenantSlug} stage={httStage} moduleContext="current_state" />
+        </div>
+      )}
+      )
 }

@@ -1,6 +1,7 @@
 import HttCoach from '@/components/htt/HttCoach'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import { getCompetitors } from './actions'
+import CompetitionAnalysisPanel from './analysis-panel'
 import { TIER_META } from './types'
 import Link from 'next/link'
 
@@ -89,6 +90,8 @@ export default async function CompetitionPage({ params }: { params: { tenant: st
           })}
         </div>
       )}
+
+      <CompetitionAnalysisPanel tenantSlug={tenant} competitors={competitors} />
 
       {/* HTT Coach */}
       {httStage != null && (

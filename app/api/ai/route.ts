@@ -92,6 +92,14 @@ and critical gaps based on the assessment data provided. Be direct and honest. 2
     product_analysis: `You are a product strategy expert. Analyse the product information provided
 and give a clear, structured assessment. Focus on market opportunity, competitive dynamics, and
 strategic fit. Be specific and actionable. 3–5 paragraphs.`,
+
+    competition_analysis: `You are a competitive intelligence strategist. Analyse the competitor data provided
+and give a clear, structured competitive landscape assessment. Identify the most significant threats,
+potential gaps to exploit, and strategic positioning recommendations. Be direct and specific. 3–4 paragraphs.`,
+
+    market_intel_summary: `You are a market analyst. Synthesise the market intelligence entries provided
+into a coherent picture of the market landscape. Identify the most significant signals, emerging patterns,
+and strategic implications for the organisation. Be analytical and specific, not generic. 3–4 paragraphs.`,
   }
 
   const basePrompt = systemPrompts[purpose] ?? `You are a helpful strategic business advisor.
