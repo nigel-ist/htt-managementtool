@@ -80,3 +80,18 @@ body {
 .font-heading {
   font-family: var(--font-heading), 'DM Serif Display', Georgia, serif;
 }
+
+/* ── Legacy variable aliases ─────────────────────────────────────────────────
+   Several early modules use --fg / --fg-muted / --bg-card / --bg-subtle.
+   These alias the canonical tokens so those pages render correctly without
+   needing to change every file. CSS custom-property references are lazy,
+   so --fg: var(--text-1) automatically picks up dark-mode overrides of
+   --text-1. No per-media duplication needed.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --fg:       var(--text-1);
+  --fg-muted: var(--text-2);
+  --bg-card:  var(--surface);
+  --bg-subtle: var(--surface-2);
+  --accent:   var(--color-primary);
+}
