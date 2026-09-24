@@ -1,47 +1,75 @@
--- ── 004: htt_interactions ────────────────────────────────────────────────────
+-- ── 004: htt_interactions schema extension ─────────────────────────────────
 --
--- Logs every HTT AI interaction so the platform can:
---   • track which module contexts trigger coach usage
---   • tune stage-aware prompting over time
---   • show users their coaching history
+-- The htt_interactions table was created in migration 001 with a basic schema.
+-- This migration extends it with the columns needed by the HTT Coach AI layer:
+--   • user_message   — renamed from prompt_text for clarity
+--   • baseline_id    — ties each coaching session to a specific HTT assessment
+--   • htt_stage      — the user's stage at time of interaction (1–5)
+--   • ai_response    — stores the full streamed response
+--   • response_signal — converted from JSONB NOT NULL DEFAULT '{}' → TEXT nullable
 --
--- RLS uses helper functions from 001:
---   jwt_tenant_id()  → (auth.jwt() ->> 'tenant_id')::uuid
---   is_il_admin()    → (auth.jwt() ->> 'is_il_admin') = 'true'
+-- All steps are idempotent: safe to run on a DB that already ran migration 001,
+-- and also safe to run on a fresh DB that hasn't run any migrations yet.
+--
+-- RLS policies were already created in migration 001 — no action needed here.
 -- ---------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS htt_interactions (
-  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id        UUID        NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  baseline_id      UUID        REFERENCES htt_baselines(id) ON DELETE SET NULL,
-  module_context   TEXT        NOT NULL DEFAULT 'htt',
-    -- which module triggered this: 'htt', 'products', 'innovations', 'staff', etc.
-  prompt_type      TEXT        NOT NULL DEFAULT 'coach',
-    -- 'coach' | 'embedded' | 'reflection'
-  capability_focus TEXT,
-    -- one of the 6 HTT capabilities, if interaction was capability-specific
-  htt_stage        SMALLINT    NOT NULL CHECK (htt_stage BETWEEN 1 AND 5),
-  user_message     TEXT        NOT NULL,
-  ai_response      TEXT        NOT NULL,
-  response_signal  TEXT,
-    -- 'helpful' | 'not_helpful' | 'skipped' — filled in by user feedback
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
+-- Step 1: rename prompt_text → user_message (idempotent via EXCEPTION)
 DO $$ BEGIN
-  CREATE INDEX htt_interactions_tenant_user
-    ON htt_interactions (tenant_id, user_id, created_at DESC);
-EXCEPTION WHEN duplicate_table THEN NULL;
+  ALTER TABLE htt_interactions RENAME COLUMN prompt_text TO user_message;
+EXCEPTION WHEN undefined_column THEN NULL;  -- already renamed or column doesn't exist
 END $$;
 
-ALTER TABLE htt_interactions ENABLE ROW LEVEL SECURITY;
+-- Step 2: add baseline_id (nullable FK to htt_baselines)
+DO $$ BEGIN
+  ALTER TABLE htt_interactions
+    ADD COLUMN baseline_id UUID REFERENCES htt_baselines(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+-- Step 3: add htt_stage (nullable so existing rows don't break)
+DO $$ BEGIN
+  ALTER TABLE htt_interactions
+    ADD COLUMN htt_stage SMALLINT CHECK (htt_stage BETWEEN 1 AND 5);
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+-- Step 4: add ai_response (nullable)
+DO $$ BEGIN
+  ALTER TABLE htt_interactions
+    ADD COLUMN ai_response TEXT;
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+-- Step 5: convert response_signal JSONB NOT NULL DEFAULT '{}' → TEXT nullable
+-- First strip the NOT NULL constraint and default so TYPE conversion can proceed
+DO $$ BEGIN
+  ALTER TABLE htt_interactions
+    ALTER COLUMN response_signal DROP NOT NULL;
+EXCEPTION WHEN others THEN NULL;
+END $$;
 
 DO $$ BEGIN
-  CREATE POLICY "tenant_isolation" ON htt_interactions
-    USING (
-      tenant_id = jwt_tenant_id()
-      OR is_il_admin()
-    );
-EXCEPTION WHEN duplicate_object THEN NULL;
+  ALTER TABLE htt_interactions
+    ALTER COLUMN response_signal DROP DEFAULT;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE htt_interactions
+    ALTER COLUMN response_signal TYPE TEXT
+    USING CASE
+      WHEN response_signal IS NULL OR response_signal::text = '{}'
+      THEN NULL
+      ELSE response_signal->>'signal'
+    END;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
+-- Step 6: index for baseline lookups (idempotent)
+DO $$ BEGIN
+  CREATE INDEX htt_interactions_baseline_idx
+    ON htt_interactions (baseline_id)
+    WHERE baseline_id IS NOT NULL;
+EXCEPTION WHEN duplicate_table THEN NULL;
 END $$;
