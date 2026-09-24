@@ -5,6 +5,7 @@
  * colour-coded by level (beginner → intermediate → advanced → expert).
  */
 import HttCoach from '@/components/htt/HttCoach'
+import StaffSkillsAnalysisPanel from './analysis-panel'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -217,6 +218,8 @@ export default async function StaffPage({ params }: StaffPageProps) {
           ))}
         </div>
       )}
+
+      <StaffSkillsAnalysisPanel tenantSlug={tenantSlug} staff={staff} />
 
       {/* HTT Coach */}
       {httStage != null && (

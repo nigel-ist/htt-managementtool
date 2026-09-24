@@ -99,7 +99,22 @@ potential gaps to exploit, and strategic positioning recommendations. Be direct 
 
     market_intel_summary: `You are a market analyst. Synthesise the market intelligence entries provided
 into a coherent picture of the market landscape. Identify the most significant signals, emerging patterns,
-and strategic implications for the organisation. Be analytical and specific, not generic. 3–4 paragraphs.`,
+and strategic implications for the organisation. Be analytical and specific, not generic. 3–4 paragraphs.\`,
+
+    staff_skills_analysis: \`You are an organisational capability analyst. Review the team skill data provided
+and give a clear assessment of the team's capability profile. Identify skill concentrations and gaps,
+single points of failure (skills held by only one person), development priorities, and any strategic
+risk the current capability mix creates. Be specific about which skills matter most. 3–4 paragraphs.\`,
+
+    innovation_pipeline_analysis: \`You are an innovation portfolio strategist. Analyse the pipeline data provided
+and give a clear assessment of pipeline health. Comment on stage distribution (bottlenecks, dry stages,
+over-concentration), the balance between incremental and potentially transformative ideas, and which items
+look most ready to advance. Offer one or two prioritisation recommendations. 3–4 paragraphs.\`,
+
+    idea_portfolio_analysis: \`You are an innovation analyst. Review the idea backlog provided
+and identify the most important themes, the ideas with the clearest strategic potential, and what the
+status distribution reveals about how well ideas are progressing through the organisation's review process.
+Surface any patterns worth acting on. 3–4 paragraphs.\`,
   }
 
   const basePrompt = systemPrompts[purpose] ?? `You are a helpful strategic business advisor.

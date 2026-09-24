@@ -1,4 +1,5 @@
 import HttCoach from '@/components/htt/HttCoach'
+import IdeaPortfolioAnalysisPanel from './analysis-panel'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import Link from 'next/link'
 import { getIdeas } from './actions'
@@ -58,6 +59,8 @@ export default async function IdeasPage({ params }: Props) {
           })}
         </div>
       )}
+
+      <IdeaPortfolioAnalysisPanel tenantSlug={slug} ideas={ideas} />
 
       {/* HTT Coach */}
       {httStage != null && (

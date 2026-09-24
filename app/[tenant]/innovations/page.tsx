@@ -8,6 +8,7 @@
  * On narrow screens the columns stack vertically.
  */
 import Link from 'next/link'
+import InnovationPipelineAnalysisPanel from './analysis-panel'
 import HttCoach from '@/components/htt/HttCoach'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import { notFound } from 'next/navigation'
@@ -198,6 +199,8 @@ export default async function InnovationsPage({ params }: InnovationsPageProps) 
           </div>
         </>
       )}
+
+      <InnovationPipelineAnalysisPanel tenantSlug={tenantSlug} innovations={innovations} />
 
       {/* HTT Coach */}
       {httStage != null && (
