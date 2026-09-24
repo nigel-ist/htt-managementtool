@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCurrentState } from './actions'
 import { CATEGORIES, type CurrentStateData } from './types'
+import CurrentStateSummary from './summary-panel'
 
 interface CurrentStatePageProps {
   params: { tenant: string }
@@ -227,6 +228,7 @@ export default async function CurrentStatePage({ params }: CurrentStatePageProps
           ))}
         </div>
       )}
+      {hasScores && <CurrentStateSummary tenantSlug={tenantSlug} scores={data.scores} />}
     </div>
   )
 }
