@@ -1,14 +1,15 @@
 /**
  * HTT Module overview page.
  *
- * Shows the user's current HTT stage, capability scores (as a visual bar chart),
- * and progression history if multiple baselines exist.
+ * Shows the user's current HTT stage, capability scores (bar chart + radar map),
+ * progression history, and the inline HTT Coach AI panel.
  *
- * If no baseline exists, prompts the user to take the diagnostic.
- * If a baseline exists, shows current scores + a link to re-assess.
+ * If no baseline exists, shows orienting moment + prompt to take diagnostic.
  */
 import Link from 'next/link'
 import { getLatestBaseline, getAllBaselines } from './actions'
+import CapabilityMap from '@/components/htt/CapabilityMap'
+import HttCoach from '@/components/htt/HttCoach'
 import type { CapabilityScores, HttBaseline } from './types'
 
 interface HttPageProps {
@@ -69,7 +70,6 @@ function StageIndicator({ current }: { current: number }) {
         const isPast = stage.num < current
         return (
           <div key={stage.num} className="flex-1 relative">
-            {/* Connector line */}
             {i > 0 && (
               <div className={`absolute left-0 top-3 h-0.5 w-full -translate-y-0.5 ${isPast || isActive ? 'bg-[rgb(var(--color-primary,59_130_246))]' : 'bg-[rgb(var(--border))]'}`} />
             )}
@@ -110,7 +110,7 @@ export default async function HttPage({ params }: HttPageProps) {
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-[rgb(var(--fg))]">How to Think</h1>
           <p className="mt-1 text-sm text-[rgb(var(--fg-muted))]">
-            Newbridge Innovations' framework for building human cognitive capability.
+            Newbridge Innovations&apos; framework for building human cognitive capability.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export default async function HttPage({ params }: HttPageProps) {
             Most tools — including AI — are excellent at telling you <strong className="text-[rgb(var(--fg))]">what to think</strong>: surfacing data, generating options, producing summaries. This platform does that too. But <strong className="text-[rgb(var(--fg))]">How to Think</strong> is a different capability — the analytical, adaptive, and independent reasoning skills that AI cannot replace.
           </p>
           <p className="text-sm text-[rgb(var(--fg-muted))] leading-relaxed mb-6 max-w-2xl">
-            The HTT framework tracks your development across six cognitive capabilities and five stages of mastery. The AI interactions throughout this platform are designed in HTT Mode — they ask what you notice, what assumptions are embedded, and what you'd need to believe — not just what the answer is.
+            The HTT framework tracks your development across six cognitive capabilities and five stages of mastery. The AI interactions throughout this platform are designed in HTT Mode — they ask what you notice, what assumptions are embedded, and what you&apos;d need to believe — not just what the answer is.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
@@ -161,8 +161,12 @@ export default async function HttPage({ params }: HttPageProps) {
   }
 
   // Baseline exists — show full dashboard
+  const previousBaseline: HttBaseline | undefined = allBaselines.length > 1
+    ? allBaselines[allBaselines.length - 2]
+    : undefined
+
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-[rgb(var(--fg))]">How to Think</h1>
@@ -198,28 +202,94 @@ export default async function HttPage({ params }: HttPageProps) {
         <StageIndicator current={baseline.stage} />
       </div>
 
-      {/* Capability scores */}
-      <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6 mb-5">
-        <h2 className="text-sm font-semibold text-[rgb(var(--fg))] mb-4">Capability Scores</h2>
-        <div className="space-y-4">
-          {CAPABILITIES.map(cap => {
-            const score = baseline.scores[cap.key] ?? 1
-            return (
-              <div key={cap.key}>
-                <div className="flex items-baseline justify-between mb-1.5">
-                  <span className="text-sm font-medium text-[rgb(var(--fg))]">{cap.label}</span>
-                  <span className="text-xs text-[rgb(var(--fg-muted))]">
-                    {score <= 1.5 ? 'Acquisition' : score <= 2.5 ? 'Fluency' : score <= 3.5 ? 'Maintenance' : score <= 4.5 ? 'Generalisation' : 'Adaptive'}
-                  </span>
-                </div>
-                <ScoreBar score={score} delta={null} />
-              </div>
-            )
-          })}
+      {/* Two-column: capability map + bar scores */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        {/* Capability Map */}
+        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-[rgb(var(--fg))] mb-4">Capability Map</h2>
+          <div className="flex justify-center">
+            <CapabilityMap
+              current={baseline.scores}
+              previous={previousBaseline?.scores ?? null}
+              size={280}
+            />
+          </div>
+          {previousBaseline && (
+            <p className="text-xs text-[rgb(var(--fg-muted))] text-center mt-2">
+              Dashed outline = previous assessment ({new Date(previousBaseline.assessed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })})
+            </p>
+          )}
         </div>
-        <div className="mt-4 pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-xs text-[rgb(var(--fg-muted))]">
-          <span>Scores rated 1 (Acquisition) → 5 (Adaptive)</span>
-          <span>Source: {baseline.source === 'diagnostic' ? 'Self-assessment' : baseline.source === 'seminar' ? 'C-Suite Seminar' : 'Coach Inferred'}</span>
+
+        {/* Capability bar scores */}
+        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-[rgb(var(--fg))] mb-4">Capability Scores</h2>
+          <div className="space-y-4">
+            {CAPABILITIES.map(cap => {
+              const score = baseline.scores[cap.key] ?? 1
+              const prevScore = previousBaseline?.scores[cap.key] ?? null
+              const delta = prevScore !== null ? score - prevScore : null
+              return (
+                <div key={cap.key}>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <span className="text-sm font-medium text-[rgb(var(--fg))]">{cap.label}</span>
+                    <span className="text-xs text-[rgb(var(--fg-muted))]">
+                      {score <= 1.5 ? 'Acquisition' : score <= 2.5 ? 'Fluency' : score <= 3.5 ? 'Maintenance' : score <= 4.5 ? 'Generalisation' : 'Adaptive'}
+                    </span>
+                  </div>
+                  <ScoreBar score={score} delta={delta} />
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-4 pt-4 border-t border-[rgb(var(--border))] flex items-center justify-between text-xs text-[rgb(var(--fg-muted))]">
+            <span>Scores 1 (Acquisition) → 5 (Adaptive)</span>
+            <span>Source: {baseline.source === 'diagnostic' ? 'Self-assessment' : baseline.source === 'seminar' ? 'C-Suite Seminar' : 'Coach Inferred'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* HTT Coach AI */}
+      <div className="mb-5">
+        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-[rgb(var(--fg))]">HTT Coach</h2>
+              <p className="text-xs text-[rgb(var(--fg-muted))] mt-0.5">
+                Stage-aware AI coaching — prompts are calibrated to your Stage {baseline.stage} profile.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-[rgb(var(--fg-muted))]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+              claude-haiku-4-5
+            </div>
+          </div>
+          <HttCoach tenantSlug={tenantSlug} stage={baseline.stage} moduleContext="htt" />
+        </div>
+      </div>
+
+      {/* Value Case */}
+      <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-6 mb-5">
+        <h2 className="text-sm font-semibold text-[rgb(var(--fg))] mb-3">Why This Matters</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-[rgb(var(--bg-subtle))] rounded-lg p-4">
+            <div className="text-lg font-bold text-[rgb(var(--color-primary,59_130_246))] mb-1">AI augments</div>
+            <p className="text-xs text-[rgb(var(--fg-muted))] leading-snug">
+              AI accelerates execution — but only humans decide what&apos;s worth doing, why, and under what constraints. HTT sharpens that judgment.
+            </p>
+          </div>
+          <div className="bg-[rgb(var(--bg-subtle))] rounded-lg p-4">
+            <div className="text-lg font-bold text-[rgb(var(--color-primary,59_130_246))] mb-1">Thinking transfers</div>
+            <p className="text-xs text-[rgb(var(--fg-muted))] leading-snug">
+              Capability built in one domain — products, finance, people — transfers to every other. Stage 4+ thinkers see patterns that others miss.
+            </p>
+          </div>
+          <div className="bg-[rgb(var(--bg-subtle))] rounded-lg p-4">
+            <div className="text-lg font-bold text-[rgb(var(--color-primary,59_130_246))] mb-1">Measurable growth</div>
+            <p className="text-xs text-[rgb(var(--fg-muted))] leading-snug">
+              The five-stage model gives a shared language for coaching conversations and makes development visible across the organisation.
+            </p>
+          </div>
         </div>
       </div>
 

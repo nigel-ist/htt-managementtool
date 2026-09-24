@@ -2,12 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import {
   HTT_CAPABILITIES,
   deriveStage,
   type CapabilityScores,
   type HttBaseline,
+  type HttInteraction,
+  type ResponseSignal,
 } from './types'
 
 
@@ -62,6 +64,43 @@ export async function getAllBaselines(
     .order('assessed_at', { ascending: true })
 
   return (data ?? []) as HttBaseline[]
+}
+
+export async function getRecentInteractions(
+  tenantSlug: string,
+  limit = 10
+): Promise<HttInteraction[]> {
+  const claims = await getServerJWTClaims()
+  if (!claims) return []
+
+  const supabase = await createClient()
+  const tenantId = await getTenantId(tenantSlug)
+  if (!tenantId) return []
+
+  const { data } = await supabase
+    .from('htt_interactions')
+    .select('id, module_context, prompt_type, capability_focus, htt_stage, user_message, ai_response, response_signal, created_at')
+    .eq('tenant_id', tenantId)
+    .eq('user_id', claims.sub)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  return (data ?? []) as HttInteraction[]
+}
+
+export async function signalInteractionResponse(
+  interactionId: string,
+  signal: ResponseSignal
+) {
+  const claims = await getServerJWTClaims()
+  if (!claims) throw new Error('Unauthorized')
+
+  const service = createServiceClient()
+  await service
+    .from('htt_interactions')
+    .update({ response_signal: signal })
+    .eq('id', interactionId)
+    .eq('user_id', claims.sub) // extra safety: only own rows
 }
 
 export async function createBaseline(tenantSlug: string, formData: FormData) {
