@@ -1,14 +1,31 @@
 export type SurveyStatus = 'draft' | 'active' | 'closed'
 
+export interface SurveyQuestion {
+  id: string
+  text: string
+  type: 'text' | 'rating' | 'yesno'
+}
+
 export interface Survey {
   id: string
   title: string
   description: string | null
   status: SurveyStatus
+  questions: SurveyQuestion[]
+  share_token: string
   created_by: string | null
   created_at: string
   updated_at: string
   response_count?: number
+}
+
+export interface SurveyResponse {
+  id: string
+  survey_id: string
+  respondent_name: string | null
+  respondent_email: string | null
+  data: Record<string, string>
+  created_at: string
 }
 
 export const STATUS_META: Record<SurveyStatus, { label: string; color: string }> = {
