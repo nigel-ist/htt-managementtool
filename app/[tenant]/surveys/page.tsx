@@ -1,10 +1,15 @@
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { getSurveys } from './actions'
 import { STATUS_META } from './types'
 import Link from 'next/link'
 
 export default async function SurveysPage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const surveys = await getSurveys(tenant)
+  const [surveys, httStage] = await Promise.all([
+    getSurveys(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -46,6 +51,18 @@ export default async function SurveysPage({ params }: { params: { tenant: string
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* HTT Coach */}
+      {httStage != null && (
+        <div className="mt-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-[rgb(var(--text-1))]">HTT Coach</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 font-medium">Feedback thinking</span>
+          </div>
+          <p className="text-xs text-[rgb(var(--text-3))] mb-4">Stage-aware coaching for interpreting survey results and turning feedback into strategic insight.</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="surveys" />
         </div>
       )}
     </div>

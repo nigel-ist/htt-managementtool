@@ -1,3 +1,5 @@
+import HttCoach from '@/components/htt/HttCoach'
+import { getHttStageForUser } from '@/lib/htt/stage'
 import { getFinanceEntries } from './actions'
 import { CATEGORY_META, PERIOD_META } from './types'
 import Link from 'next/link'
@@ -8,7 +10,10 @@ function formatCurrency(amount: number, currency: string) {
 
 export default async function FinancePage({ params }: { params: { tenant: string } }) {
   const { tenant } = await Promise.resolve(params)
-  const entries = await getFinanceEntries(tenant)
+  const [entries, httStage] = await Promise.all([
+    getFinanceEntries(tenant),
+    getHttStageForUser(tenant),
+  ])
 
   const totals = entries.reduce((acc, e) => {
     const sign = e.category === 'expense' ? -1 : 1
@@ -93,6 +98,18 @@ export default async function FinancePage({ params }: { params: { tenant: string
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* HTT Coach */}
+      {httStage != null && (
+        <div className="mt-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-[rgb(var(--text-1))]">HTT Coach</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 font-medium">Financial thinking</span>
+          </div>
+          <p className="text-xs text-[rgb(var(--text-3))] mb-4">Stage-aware coaching for interpreting financial signals, identifying risks, and framing decisions.</p>
+          <HttCoach tenantSlug={tenant} stage={httStage} moduleContext="finance" />
         </div>
       )}
     </div>
