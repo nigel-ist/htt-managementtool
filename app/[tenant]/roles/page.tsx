@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getRoles } from './actions'
 import HttCoach from '@/components/htt/HttCoach'
+import RolesAnalysisPanel from './analysis-panel'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import type { Role } from './types'
 
@@ -163,6 +164,8 @@ export default async function RolesPage({ params }: RolesPageProps) {
         </div>
       )}
     
+      <RolesAnalysisPanel tenantSlug={tenantSlug} roles={roles} />
+
       {httStage != null && (
         <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
           <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Role thinking</p>

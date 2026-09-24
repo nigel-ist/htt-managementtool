@@ -125,6 +125,16 @@ income source), and what the investment pattern suggests about priorities. Be di
 and give a clear assessment of the compensation structure. Identify whether the bands reflect market norms,
 whether there are internal equity risks (compressed bands, gaps between levels), and what the overall
 structure reveals about how the organisation values different roles. Be specific and constructive. 3–4 paragraphs.\`,
+
+    relationship_network_analysis: \`You are a stakeholder strategy expert. Analyse the relationship network provided
+and give a clear assessment of the organisation's external positioning. Comment on the balance of relationship types
+(investors, customers, partners, suppliers, advisors, government), where the network is strong, and what strategic
+relationship gaps or concentrations could create risk or opportunity. Be specific. 3–4 paragraphs.\`,
+
+    roles_analysis: \`You are an organisational design expert. Review the role and headcount data provided
+and give a clear assessment of the org structure. Comment on the level and department distribution, whether the
+structure is front-heavy or back-heavy, open headcount that looks strategically critical, and any structural
+patterns that might limit the organisation's effectiveness. Be direct. 3–4 paragraphs.\`,
   }
 
   const basePrompt = systemPrompts[purpose] ?? `You are a helpful strategic business advisor.

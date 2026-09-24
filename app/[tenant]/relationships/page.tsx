@@ -1,5 +1,6 @@
 import { getRelationships } from './actions'
 import HttCoach from '@/components/htt/HttCoach'
+import RelationshipNetworkAnalysisPanel from './analysis-panel'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import { CATEGORY_META } from './types'
 import Link from 'next/link'
@@ -61,6 +62,8 @@ export default async function RelationshipsPage({ params }: { params: { tenant: 
         </div>
       )}
     
+      <RelationshipNetworkAnalysisPanel tenantSlug={tenant} relationships={relationships} />
+
       {httStage != null && (
         <div className="mt-10 p-5 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
           <p className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))] mb-3">Network thinking</p>
