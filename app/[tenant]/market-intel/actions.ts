@@ -15,7 +15,7 @@ async function resolveTenantId(slug: string): Promise<string | null> {
 }
 
 function mapRow(r: Record<string, unknown>): MarketIntelEntry {
-  return { ...r as MarketIntelEntry, tags: (r.tags as string[]) ?? [] }
+  return { ...r as unknown as MarketIntelEntry, tags: (r.tags as string[]) ?? [] }
 }
 
 export async function getIntelEntries(tenantSlug: string): Promise<MarketIntelEntry[]> {
