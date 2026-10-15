@@ -72,7 +72,7 @@ export default function CurrentStateSummary({ tenantSlug, scores }: Props) {
     <section className="mt-8 pt-6 border-t border-[rgb(var(--border))]">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--text-3))]">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[rgb(var(--fg-muted))]">
             AI Assessment
           </h2>
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
@@ -87,7 +87,7 @@ export default function CurrentStateSummary({ tenantSlug, scores }: Props) {
               'inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-all',
               !loading
                 ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900/50'
-                : 'bg-[rgb(var(--surface-2))] text-[rgb(var(--text-3))] cursor-not-allowed',
+                : 'bg-[rgb(var(--bg-subtle))] text-[rgb(var(--fg-muted))] cursor-not-allowed',
             ].join(' ')}
           >
             {loading ? (
@@ -110,7 +110,7 @@ export default function CurrentStateSummary({ tenantSlug, scores }: Props) {
         ) : (
           <button
             onClick={() => setOpen((o) => !o)}
-            className="text-xs text-[rgb(var(--text-3))] hover:text-[rgb(var(--text-2))] transition-colors"
+            className="text-xs text-[rgb(var(--fg-muted))] hover:text-[rgb(var(--fg))] transition-colors"
           >
             {open ? 'Hide' : 'Show'}
           </button>
@@ -124,9 +124,9 @@ export default function CurrentStateSummary({ tenantSlug, scores }: Props) {
       )}
 
       {summary && open && (
-        <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl p-5">
+        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-xl p-5">
           {summary.split('\n\n').map((para, i) => (
-            <p key={i} className="text-sm text-[rgb(var(--text-2))] leading-relaxed mb-3 last:mb-0">
+            <p key={i} className="text-sm text-[rgb(var(--fg-muted))] leading-relaxed mb-3 last:mb-0">
               {para}
             </p>
           ))}
@@ -134,7 +134,7 @@ export default function CurrentStateSummary({ tenantSlug, scores }: Props) {
             <button
               onClick={generate}
               disabled={loading}
-              className="text-xs text-[rgb(var(--text-3))] hover:text-[rgb(var(--text-2))] transition-colors"
+              className="text-xs text-[rgb(var(--fg-muted))] hover:text-[rgb(var(--fg))] transition-colors disabled:opacity-50"
             >
               Regenerate
             </button>
