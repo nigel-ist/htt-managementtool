@@ -1,139 +1,177 @@
 'use server'
 
-import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Survey, SurveyQuestion, SurveyResponse } from './types'
-import { randomUUID } from 'crypto'
+import { redirect } from 'next/navigation'
+import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import type { SurveyStatus } from '@/app/[tenant]/surveys/types'
+import { seedThinkSurvey } from '@/lib/surveys/seeds/seed-think-survey'
+import { seedFeelSurvey } from '@/lib/surveys/seeds/seed-feel-survey'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Auth helper ────────────────────────────────────────────────────────────
 
 async function getTenantId(tenantSlug: string): Promise<string | null> {
+  const claims = await getServerJWTClaims()
+  if (!claims) return null
+  if (claims.tenant_id) return claims.tenant_id
+
   const supabase = await createClient()
-  const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
+  const { data } = await supabase
+    .from('tenants')
+    .select('id')
+    .eq('slug', tenantSlug)
+    .single()
   return data?.id ?? null
 }
 
-// ── Reads ─────────────────────────────────────────────────────────────────────
-
-export async function getSurveys(tenantSlug: string): Promise<Survey[]> {
-  const supabase = await createClient()
-  const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) return []
-  const { data } = await supabase
-    .from('surveys')
-    .select('*, survey_responses(count)')
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-  return (data ?? []).map((r: Record<string, unknown>) => ({
-    ...r,
-    questions: Array.isArray(r.questions) ? r.questions : [],
-    response_count: (r.survey_responses as { count: number }[])?.[0]?.count ?? 0,
-  })) as Survey[]
-}
-
-export async function getSurvey(tenantSlug: string, id: string): Promise<Survey | null> {
-  const supabase = await createClient()
-  const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) return null
-  const { data } = await supabase
-    .from('surveys')
-    .select('*, survey_responses(count)')
-    .eq('id', id)
-    .eq('tenant_id', tenantId)
-    .single()
-  if (!data) return null
-  return {
-    ...data,
-    questions: Array.isArray(data.questions) ? data.questions : [],
-    response_count: (data.survey_responses as { count: number }[])?.[0]?.count ?? 0,
-  } as Survey
-}
-
-export async function getSurveyByToken(token: string): Promise<Survey | null> {
-  const service = createServiceClient()
-  const { data } = await service
-    .from('surveys')
-    .select('*')
-    .eq('share_token', token)
-    .single()
-  if (!data) return null
-  return {
-    ...data,
-    questions: Array.isArray(data.questions) ? data.questions : [],
-  } as Survey
-}
-
-export async function getSurveyResponses(tenantSlug: string, surveyId: string): Promise<SurveyResponse[]> {
-  const supabase = await createClient()
-  const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) return []
-  const { data } = await supabase
-    .from('survey_responses')
-    .select('id, survey_id, respondent_name, respondent_email, data, created_at')
-    .eq('survey_id', surveyId)
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-  return (data ?? []) as SurveyResponse[]
-}
-
-// ── Mutations ─────────────────────────────────────────────────────────────────
-
-function parseQuestions(formData: FormData): SurveyQuestion[] {
-  const questions: SurveyQuestion[] = []
-  let i = 0
-  while (formData.has(`question_text_${i}`)) {
-    const text = (formData.get(`question_text_${i}`) as string).trim()
-    const type = (formData.get(`question_type_${i}`) as string) || 'text'
-    if (text) {
-      questions.push({ id: randomUUID(), text, type: type as SurveyQuestion['type'] })
-    }
-    i++
-  }
-  return questions
-}
+// ── Survey CRUD ─────────────────────────────────────────────────────────────
 
 export async function createSurvey(tenantSlug: string, formData: FormData) {
-  const service = createServiceClient()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) throw new Error('Tenant not found')
+  if (!tenantId) throw new Error('Unauthorized')
 
-  const questions = parseQuestions(formData)
+  const title = (formData.get('title') as string | null)?.trim()
+  const description = (formData.get('description') as string | null)?.trim() || null
 
-  await service.from('surveys').insert({
+  if (!title) throw new Error('Title is required')
+
+  const { randomUUID } = await import('crypto')
+  const supabase = await createClient()
+  const { error } = await supabase.from('surveys').insert({
     tenant_id: tenantId,
-    title: formData.get('title') as string,
-    description: (formData.get('description') as string) || null,
-    status: (formData.get('status') as string) || 'draft',
-    questions,
-    created_by: user?.id ?? null,
+    title,
+    description,
+    status: 'draft',
+    survey_type: 'standard',
+    questions: [],
+    share_token: randomUUID(),
   })
 
+  if (error) throw new Error(error.message)
   revalidatePath(`/${tenantSlug}/surveys`)
+  redirect(`/${tenantSlug}/surveys`)
 }
 
-export async function updateSurvey(tenantSlug: string, id: string, formData: FormData) {
-  const service = createServiceClient()
+export async function updateSurveyStatus(
+  tenantSlug: string,
+  surveyId: string,
+  status: SurveyStatus
+) {
   const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) throw new Error('Tenant not found')
+  if (!tenantId) throw new Error('Unauthorized')
 
-  const questions = parseQuestions(formData)
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('surveys')
+    .update({ status })
+    .eq('id', surveyId)
+    .eq('tenant_id', tenantId)
 
-  await service.from('surveys').update({
-    title: formData.get('title') as string,
-    description: (formData.get('description') as string) || null,
-    status: formData.get('status') as string,
-    questions,
-  }).eq('id', id).eq('tenant_id', tenantId)
-
+  if (error) throw new Error(error.message)
   revalidatePath(`/${tenantSlug}/surveys`)
+  revalidatePath(`/${tenantSlug}/surveys/${surveyId}`)
 }
 
-export async function deleteSurvey(tenantSlug: string, id: string) {
-  const service = createServiceClient()
+export async function deleteSurvey(tenantSlug: string, surveyId: string) {
   const tenantId = await getTenantId(tenantSlug)
-  if (!tenantId) throw new Error('Tenant not found')
-  await service.from('surveys').delete().eq('id', id).eq('tenant_id', tenantId)
+  if (!tenantId) throw new Error('Unauthorized')
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('surveys')
+    .delete()
+    .eq('id', surveyId)
+    .eq('tenant_id', tenantId)
+
+  if (error) throw new Error(error.message)
   revalidatePath(`/${tenantSlug}/surveys`)
+  redirect(`/${tenantSlug}/surveys`)
+}
+
+// ── Seed standard assessments ───────────────────────────────────────────────
+
+export async function seedStandardSurveys(
+  tenantSlug: string
+): Promise<{ seeded: string[]; skipped: string[]; error?: string }> {
+  const claims = await getServerJWTClaims()
+  if (!claims) return { seeded: [], skipped: [], error: 'Unauthorized' }
+
+  // Check what's already seeded to avoid duplicates
+  const service = createServiceClient()
+  const { data: tenant } = await service
+    .from('tenants')
+    .select('id')
+    .eq('slug', tenantSlug)
+    .single()
+  if (!tenant) return { seeded: [], skipped: [], error: 'Tenant not found' }
+
+  const { data: existing } = await service
+    .from('surveys')
+    .select('title')
+    .eq('tenant_id', tenant.id)
+
+  const existingTitles = new Set((existing ?? []).map((s: { title: string }) => s.title))
+
+  const seeded: string[] = []
+  const skipped: string[] = []
+
+  // Think Survey
+  const thinkTitle = 'Think Survey — Reasoning Fluidity Assessment'
+  if (existingTitles.has(thinkTitle)) {
+    skipped.push('Think Survey')
+  } else {
+    const result = await seedThinkSurvey(tenantSlug)
+    if (result) seeded.push('Think Survey')
+    else return { seeded, skipped, error: 'Failed to seed Think Survey' }
+  }
+
+  // Feel Survey
+  const feelTitle = 'Feel Survey — Personality & Work Values Assessment'
+  if (existingTitles.has(feelTitle)) {
+    skipped.push('Feel Survey')
+  } else {
+    const result = await seedFeelSurvey(tenantSlug)
+    if (result) seeded.push('Feel Survey')
+    else return { seeded, skipped, error: 'Failed to seed Feel Survey' }
+  }
+
+  revalidatePath(`/${tenantSlug}/surveys`)
+  return { seeded, skipped }
+}
+
+// ── Response import (CSV) ───────────────────────────────────────────────────
+
+export async function importSurveyResponses(
+  tenantSlug: string,
+  surveyId: string,
+  rows: Array<{ name?: string; email?: string; data: Record<string, string> }>
+): Promise<{ inserted: number; error?: string }> {
+  const tenantId = await getTenantId(tenantSlug)
+  if (!tenantId) return { inserted: 0, error: 'Unauthorized' }
+
+  // Verify survey belongs to this tenant
+  const supabase = await createClient()
+  const { data: survey } = await supabase
+    .from('surveys')
+    .select('id')
+    .eq('id', surveyId)
+    .eq('tenant_id', tenantId)
+    .single()
+  if (!survey) return { inserted: 0, error: 'Survey not found' }
+
+  const records = rows.map(r => ({
+    survey_id: surveyId,
+    respondent_name: r.name ?? null,
+    respondent_email: r.email ?? null,
+    data: r.data,
+  }))
+
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from('survey_responses')
+    .insert(records)
+    .select('id')
+
+  if (error) return { inserted: 0, error: error.message }
+  revalidatePath(`/${tenantSlug}/surveys/${surveyId}`)
+  return { inserted: data?.length ?? 0 }
 }
