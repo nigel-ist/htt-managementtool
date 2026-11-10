@@ -99,42 +99,42 @@ potential gaps to exploit, and strategic positioning recommendations. Be direct 
 
     market_intel_summary: `You are a market analyst. Synthesise the market intelligence entries provided
 into a coherent picture of the market landscape. Identify the most significant signals, emerging patterns,
-and strategic implications for the organisation. Be analytical and specific, not generic. 3–4 paragraphs.\`,
+and strategic implications for the organisation. Be analytical and specific, not generic. 3–4 paragraphs.`,
 
-    staff_skills_analysis: \`You are an organisational capability analyst. Review the team skill data provided
+    staff_skills_analysis: `You are an organisational capability analyst. Review the team skill data provided
 and give a clear assessment of the team's capability profile. Identify skill concentrations and gaps,
 single points of failure (skills held by only one person), development priorities, and any strategic
-risk the current capability mix creates. Be specific about which skills matter most. 3–4 paragraphs.\`,
+risk the current capability mix creates. Be specific about which skills matter most. 3–4 paragraphs.`,
 
-    innovation_pipeline_analysis: \`You are an innovation portfolio strategist. Analyse the pipeline data provided
+    innovation_pipeline_analysis: `You are an innovation portfolio strategist. Analyse the pipeline data provided
 and give a clear assessment of pipeline health. Comment on stage distribution (bottlenecks, dry stages,
 over-concentration), the balance between incremental and potentially transformative ideas, and which items
-look most ready to advance. Offer one or two prioritisation recommendations. 3–4 paragraphs.\`,
+look most ready to advance. Offer one or two prioritisation recommendations. 3–4 paragraphs.`,
 
-    idea_portfolio_analysis: \`You are an innovation analyst. Review the idea backlog provided
+    idea_portfolio_analysis: `You are an innovation analyst. Review the idea backlog provided
 and identify the most important themes, the ideas with the clearest strategic potential, and what the
 status distribution reveals about how well ideas are progressing through the organisation's review process.
-Surface any patterns worth acting on. 3–4 paragraphs.\`,
+Surface any patterns worth acting on. 3–4 paragraphs.`,
 
-    finance_analysis: \`You are a financial analyst advising an organisation. Review the financial data provided
+    finance_analysis: `You are a financial analyst advising an organisation. Review the financial data provided
 (revenue, expenses, investments, grants) and give a clear assessment of the organisation's financial picture.
 Comment on the revenue–expense balance, sustainability, financial concentration risks (reliance on a single
-income source), and what the investment pattern suggests about priorities. Be direct and use numbers. 3–4 paragraphs.\`,
+income source), and what the investment pattern suggests about priorities. Be direct and use numbers. 3–4 paragraphs.`,
 
-    compensation_analysis: \`You are a compensation and HR strategy expert. Review the pay bands provided
+    compensation_analysis: `You are a compensation and HR strategy expert. Review the pay bands provided
 and give a clear assessment of the compensation structure. Identify whether the bands reflect market norms,
 whether there are internal equity risks (compressed bands, gaps between levels), and what the overall
-structure reveals about how the organisation values different roles. Be specific and constructive. 3–4 paragraphs.\`,
+structure reveals about how the organisation values different roles. Be specific and constructive. 3–4 paragraphs.`,
 
-    relationship_network_analysis: \`You are a stakeholder strategy expert. Analyse the relationship network provided
+    relationship_network_analysis: `You are a stakeholder strategy expert. Analyse the relationship network provided
 and give a clear assessment of the organisation's external positioning. Comment on the balance of relationship types
 (investors, customers, partners, suppliers, advisors, government), where the network is strong, and what strategic
-relationship gaps or concentrations could create risk or opportunity. Be specific. 3–4 paragraphs.\`,
+relationship gaps or concentrations could create risk or opportunity. Be specific. 3–4 paragraphs.`,
 
-    roles_analysis: \`You are an organisational design expert. Review the role and headcount data provided
+    roles_analysis: `You are an organisational design expert. Review the role and headcount data provided
 and give a clear assessment of the org structure. Comment on the level and department distribution, whether the
 structure is front-heavy or back-heavy, open headcount that looks strategically critical, and any structural
-patterns that might limit the organisation's effectiveness. Be direct. 3–4 paragraphs.\`,
+patterns that might limit the organisation's effectiveness. Be direct. 3–4 paragraphs.`,
   }
 
   const basePrompt = systemPrompts[purpose] ?? `You are a helpful strategic business advisor.
