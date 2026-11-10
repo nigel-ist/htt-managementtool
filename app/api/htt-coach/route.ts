@@ -11,7 +11,7 @@
 
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import { buildCoachSystemPrompt } from '@/app/[tenant]/htt/types'
 
 const anthropic = new Anthropic()
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolve tenant
-    const supabase = await createClient()
+    const supabase = createServiceClient()
     const tenantId: string | null = claims.tenant_id ?? (await (async () => {
       const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
       return data?.id ?? null
