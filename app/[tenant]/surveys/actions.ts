@@ -183,7 +183,7 @@ export async function getSurveyByToken(token: string) {
   const service = createServiceClient()
   const { data, error } = await service
     .from('surveys')
-    .select('id, title, description, status, questions, scoring_config, survey_type')
+    .select('id, title, description, status, questions, scoring_config, survey_type, share_token, created_by, created_at, updated_at')
     .eq('share_token', token)
     .single()
 
