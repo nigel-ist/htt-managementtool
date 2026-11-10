@@ -13,7 +13,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { MemberRole } from '@/lib/types/database'
 import type { Invitation } from './types'
 
@@ -24,7 +24,7 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('tenants')
     .select('id')
@@ -59,7 +59,7 @@ export async function getInvitations(tenantSlug: string): Promise<Invitation[]> 
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('invitations')
     .select('*')
@@ -85,7 +85,7 @@ export async function sendInvitation(
   if (!['viewer', 'editor', 'admin'].includes(role)) return { error: 'Invalid role.' }
 
   // ── 1. Check for existing pending invitation ────────────────────────────
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: existing } = await supabase
     .from('invitations')
     .select('id, accepted_at, expires_at')
@@ -168,7 +168,7 @@ export async function sendInvitation(
 export async function revokeInvitation(tenantSlug: string, invitationId: string): Promise<void> {
   const { tenantId } = await requireAdmin(tenantSlug)
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   await supabase
     .from('invitations')
     .delete()

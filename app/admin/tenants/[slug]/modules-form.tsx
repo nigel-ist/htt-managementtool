@@ -4,6 +4,7 @@
  * Module toggle form — enables/disables platform modules per tenant.
  */
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MODULE_KEYS } from '@/lib/types/database'
 
 const MODULE_LABELS: Record<string, { label: string; description: string; group: string }> = {
@@ -36,6 +37,7 @@ export default function TenantModulesForm({ tenantId, enabledModules }: ModulesF
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   function toggle(key: string) {
     setEnabled(prev => {
@@ -64,6 +66,7 @@ export default function TenantModulesForm({ tenantId, enabledModules }: ModulesF
       }
 
       setSaved(true)
+      router.refresh()
       setTimeout(() => setSaved(false), 3000)
     } catch (err: any) {
       setError(err.message)
