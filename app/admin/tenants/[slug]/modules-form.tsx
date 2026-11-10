@@ -8,23 +8,29 @@ import { useRouter } from 'next/navigation'
 import { MODULE_KEYS } from '@/lib/types/database'
 
 const MODULE_LABELS: Record<string, { label: string; description: string; group: string }> = {
-  products:          { label: 'Products',           description: 'Product catalogue management',            group: 'Core' },
-  innovations:       { label: 'Innovations',         description: 'Innovation pipeline tracker',            group: 'Core' },
-  staff_skills:      { label: 'Staff Skills',        description: 'Team capability mapping',               group: 'Core' },
-  strategy:          { label: 'Strategy',            description: 'Strategic planning tools',              group: 'Strategy' },
-  okrs:              { label: 'OKRs',                description: 'Objectives and key results',            group: 'Strategy' },
-  roadmap:           { label: 'Roadmap',             description: 'Product and initiative roadmaps',       group: 'Strategy' },
-  htt_baseline:      { label: 'HTT Baseline',        description: 'How to Think diagnostic assessment',   group: 'HTT' },
-  htt_coaching:      { label: 'HTT Coaching',        description: 'AI coaching and capability guidance',  group: 'HTT' },
-  htt_benchmarks:    { label: 'HTT Benchmarks',      description: 'Anonymised sector benchmarks',         group: 'HTT' },
-  ai_insights:       { label: 'AI Insights',         description: 'AI-powered analysis and suggestions',  group: 'AI' },
-  reports:           { label: 'Reports',             description: 'Automated reporting and exports',       group: 'Reporting' },
-  integrations:      { label: 'Integrations',        description: 'Third-party integrations',             group: 'Advanced' },
-  custom_branding:   { label: 'Custom Branding',     description: 'White-label branding controls',        group: 'Advanced' },
-  sso:               { label: 'SSO',                 description: 'Single sign-on via SAML/OIDC',        group: 'Advanced' },
-  api_access:        { label: 'API Access',          description: 'Programmatic platform access',         group: 'Advanced' },
-  advanced_analytics:{ label: 'Advanced Analytics',  description: 'Detailed usage and performance data',  group: 'Advanced' },
-  white_label:       { label: 'White Label',         description: 'Remove Innovation Lab branding',       group: 'Advanced' },
+  // ── Core ──────────────────────────────────────────────────────────────────
+  products:             { label: 'Products',              description: 'Product catalogue management',             group: 'Core' },
+  innovations:          { label: 'Innovations',            description: 'Innovation pipeline tracker',             group: 'Core' },
+  ideas:                { label: 'Ideas',                  description: 'Idea capture and voting',                 group: 'Core' },
+  staff_skills:         { label: 'Staff Skills',           description: 'Team capability mapping',                 group: 'Core' },
+  downloads:            { label: 'Downloads',              description: 'Shared file library',                     group: 'Core' },
+  // ── Strategy ──────────────────────────────────────────────────────────────
+  current_state:        { label: 'Current State',          description: 'Organisational baseline assessment',      group: 'Strategy' },
+  future_state:         { label: 'Future State',           description: 'Strategic vision and targets',            group: 'Strategy' },
+  structure:            { label: 'Structure',              description: 'Org structure and roles',                 group: 'Strategy' },
+  // ── Market ────────────────────────────────────────────────────────────────
+  market_intel:         { label: 'Market Intel',           description: 'Market intelligence and trends',          group: 'Market' },
+  competition:          { label: 'Competition',            description: 'Competitor tracking and analysis',        group: 'Market' },
+  relationship_network: { label: 'Relationships',          description: 'Stakeholder and partner network',         group: 'Market' },
+  // ── Finance ───────────────────────────────────────────────────────────────
+  finance:              { label: 'Finance',                description: 'Financial entries and forecasts',         group: 'Finance' },
+  compensation:         { label: 'Compensation',           description: 'Compensation bands and benchmarks',       group: 'Finance' },
+  // ── Governance ────────────────────────────────────────────────────────────
+  bod_management:       { label: 'Board Meetings',         description: 'Board meeting management and minutes',    group: 'Governance' },
+  surveys:              { label: 'Surveys',                description: 'Custom surveys and assessments',          group: 'Governance' },
+  collaboration:        { label: 'Collaboration',          description: 'Team collaboration tools',                group: 'Governance' },
+  // ── HTT ───────────────────────────────────────────────────────────────────
+  htt:                  { label: 'How to Think',           description: 'HTT diagnostic, coaching and benchmarks', group: 'HTT' },
 }
 
 interface ModulesFormProps {

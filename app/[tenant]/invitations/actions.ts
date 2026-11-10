@@ -102,9 +102,9 @@ export async function sendInvitation(
   // ── 2. Check if already a member ───────────────────────────────────────
   const serviceClient = createServiceClient()
 
-  // Find user id by email via admin API
-  const { data: usersData } = await serviceClient.auth.admin.listUsers()
-  const existingUser = usersData?.users?.find(u => u.email === email)
+  // Find user by email via targeted admin API (avoids paginated listUsers)
+  const { data: userData } = await serviceClient.auth.admin.getUserByEmail(email).catch(() => ({ data: null }))
+  const existingUser = userData?.user ?? null
 
   if (existingUser) {
     // Check if already a member of this tenant
