@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import Link from 'next/link'
 
@@ -8,7 +8,7 @@ interface DashboardPageProps {
 }
 
 async function getDashboardStats(tenantId: string) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const tables = [
     'products', 'innovations', 'staff_skills', 'htt_baselines',
@@ -92,7 +92,7 @@ async function DashboardContent({ tenantSlug }: { tenantSlug: string }) {
   const claims = await getServerJWTClaims()
   if (!claims?.tenant_id && !claims?.is_il_admin) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   let tenantId = claims.tenant_id
 
   if (!tenantId) {
