@@ -9,7 +9,7 @@
  *    Uses AppShell (client) for mobile drawer support.
  */
 import { notFound, redirect } from 'next/navigation'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import type { TenantBranding } from '@/lib/types/database'
 import { getAccessibleModules } from '@/lib/modules/access'

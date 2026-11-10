@@ -1,7 +1,6 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/server'
-import { createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { Relationship } from './types'
 
