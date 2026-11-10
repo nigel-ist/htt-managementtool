@@ -175,3 +175,18 @@ export async function importSurveyResponses(
   revalidatePath(`/${tenantSlug}/surveys/${surveyId}`)
   return { inserted: data?.length ?? 0 }
 }
+
+// ── Public survey lookup (no auth — share link) ─────────────────────────────
+
+export async function getSurveyByToken(token: string) {
+  if (!token) return null
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from('surveys')
+    .select('id, title, description, status, questions, scoring_config, survey_type')
+    .eq('share_token', token)
+    .single()
+
+  if (error || !data) return null
+  return data
+}
