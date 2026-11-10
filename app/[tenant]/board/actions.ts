@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { BoardMeeting } from './types'
 
 export async function getBoardMeetings(tenantSlug: string): Promise<BoardMeeting[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return []
   const { data } = await supabase
@@ -22,7 +22,7 @@ export async function getBoardMeetings(tenantSlug: string): Promise<BoardMeeting
 }
 
 export async function getBoardMeeting(tenantSlug: string, id: string): Promise<BoardMeeting | null> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return null
   const { data } = await supabase.from('board_meetings').select('*').eq('id', id).eq('tenant_id', tenant.id).single()
@@ -34,7 +34,7 @@ const parseList = (val: FormDataEntryValue | null) =>
   (val as string ?? '').split('\n').map((s: string) => s.trim()).filter(Boolean)
 
 export async function createBoardMeeting(tenantSlug: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
@@ -56,7 +56,7 @@ export async function createBoardMeeting(tenantSlug: string, formData: FormData)
 
 export async function updateBoardMeeting(tenantSlug: string, id: string, formData: FormData) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('board_meetings').update({
@@ -74,7 +74,7 @@ export async function updateBoardMeeting(tenantSlug: string, id: string, formDat
 
 export async function deleteBoardMeeting(tenantSlug: string, id: string) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('board_meetings').delete().eq('id', id).eq('tenant_id', tenant.id)

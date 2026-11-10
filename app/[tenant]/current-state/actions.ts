@@ -28,7 +28,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import { CATEGORIES, type DimensionScore, type CurrentStateData } from './types'
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ async function resolveTenantId(tenantSlug: string): Promise<string | null> {
 
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   return data?.id ?? null
 }
@@ -53,7 +53,7 @@ export async function getCurrentState(tenantSlug: string): Promise<CurrentStateD
   const tenantId = await resolveTenantId(tenantSlug)
   if (!tenantId) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data, error } = await supabase
     .from('current_state_scores')

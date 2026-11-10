@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { SurveyStatus } from '@/app/[tenant]/surveys/types'
 import { seedThinkSurvey } from '@/lib/surveys/seeds/seed-think-survey'
 import { seedFeelSurvey } from '@/lib/surveys/seeds/seed-feel-survey'
@@ -14,7 +14,7 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('tenants')
     .select('id')
@@ -35,7 +35,7 @@ export async function createSurvey(tenantSlug: string, formData: FormData) {
   if (!title) throw new Error('Title is required')
 
   const { randomUUID } = await import('crypto')
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from('surveys').insert({
     tenant_id: tenantId,
     title,
@@ -59,7 +59,7 @@ export async function updateSurveyStatus(
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) throw new Error('Unauthorized')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('surveys')
     .update({ status })
@@ -75,7 +75,7 @@ export async function deleteSurvey(tenantSlug: string, surveyId: string) {
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) throw new Error('Unauthorized')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('surveys')
     .delete()
@@ -149,7 +149,7 @@ export async function importSurveyResponses(
   if (!tenantId) return { inserted: 0, error: 'Unauthorized' }
 
   // Verify survey belongs to this tenant
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: survey } = await supabase
     .from('surveys')
     .select('id')

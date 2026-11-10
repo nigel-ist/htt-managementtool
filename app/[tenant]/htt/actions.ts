@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import {
   HTT_CAPABILITIES,
   deriveStage,
@@ -18,7 +18,7 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   return data?.id ?? null
 }
@@ -29,7 +29,7 @@ export async function getLatestBaseline(
   const claims = await getServerJWTClaims()
   if (!claims) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return null
 
@@ -52,7 +52,7 @@ export async function getAllBaselines(
   const claims = await getServerJWTClaims()
   if (!claims) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return []
 
@@ -73,7 +73,7 @@ export async function getRecentInteractions(
   const claims = await getServerJWTClaims()
   if (!claims) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return []
 
@@ -125,7 +125,7 @@ export async function createBaseline(tenantSlug: string, formData: FormData) {
   }
 
   const stage = deriveStage(scores)
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Get the previous baseline to compute deltas
   const { data: prevBaseline } = await supabase

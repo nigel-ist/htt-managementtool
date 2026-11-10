@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { CompensationBand } from './types'
 
 export async function getCompensationBands(tenantSlug: string): Promise<CompensationBand[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return []
   const { data } = await supabase
@@ -18,7 +18,7 @@ export async function getCompensationBands(tenantSlug: string): Promise<Compensa
 }
 
 export async function getCompensationBand(tenantSlug: string, id: string): Promise<CompensationBand | null> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return null
   const { data } = await supabase.from('compensation_bands').select('*').eq('id', id).eq('tenant_id', tenant.id).single()
@@ -26,7 +26,7 @@ export async function getCompensationBand(tenantSlug: string, id: string): Promi
 }
 
 export async function createCompensationBand(tenantSlug: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
@@ -50,7 +50,7 @@ export async function createCompensationBand(tenantSlug: string, formData: FormD
 
 export async function updateCompensationBand(tenantSlug: string, id: string, formData: FormData) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('compensation_bands').update({
@@ -70,7 +70,7 @@ export async function updateCompensationBand(tenantSlug: string, id: string, for
 
 export async function deleteCompensationBand(tenantSlug: string, id: string) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('compensation_bands').delete().eq('id', id).eq('tenant_id', tenant.id)

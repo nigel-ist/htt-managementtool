@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { Competitor } from './types'
 
 export async function getCompetitors(tenantSlug: string): Promise<Competitor[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return []
   const { data } = await supabase
@@ -23,7 +23,7 @@ export async function getCompetitors(tenantSlug: string): Promise<Competitor[]> 
 }
 
 export async function getCompetitor(tenantSlug: string, id: string): Promise<Competitor | null> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return null
   const { data } = await supabase
@@ -42,7 +42,7 @@ export async function getCompetitor(tenantSlug: string, id: string): Promise<Com
 }
 
 export async function createCompetitor(tenantSlug: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
@@ -67,7 +67,7 @@ export async function createCompetitor(tenantSlug: string, formData: FormData) {
 
 export async function updateCompetitor(tenantSlug: string, id: string, formData: FormData) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
 
@@ -88,7 +88,7 @@ export async function updateCompetitor(tenantSlug: string, id: string, formData:
 
 export async function deleteCompetitor(tenantSlug: string, id: string) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('competitors').delete().eq('id', id).eq('tenant_id', tenant.id)

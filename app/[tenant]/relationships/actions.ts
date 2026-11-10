@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { Relationship } from './types'
 
 export async function getRelationships(tenantSlug: string): Promise<Relationship[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return []
   const { data } = await supabase
@@ -18,7 +18,7 @@ export async function getRelationships(tenantSlug: string): Promise<Relationship
 }
 
 export async function getRelationship(tenantSlug: string, id: string): Promise<Relationship | null> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) return null
   const { data } = await supabase.from('relationships').select('*').eq('id', id).eq('tenant_id', tenant.id).single()
@@ -27,7 +27,7 @@ export async function getRelationship(tenantSlug: string, id: string): Promise<R
 }
 
 export async function createRelationship(tenantSlug: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
@@ -49,7 +49,7 @@ export async function createRelationship(tenantSlug: string, formData: FormData)
 
 export async function updateRelationship(tenantSlug: string, id: string, formData: FormData) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   const parseList = (v: FormDataEntryValue | null) => (v as string ?? '').split('\n').map((s: string) => s.trim()).filter(Boolean)
@@ -67,7 +67,7 @@ export async function updateRelationship(tenantSlug: string, id: string, formDat
 
 export async function deleteRelationship(tenantSlug: string, id: string) {
   const service = createServiceClient()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: tenant } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   if (!tenant) throw new Error('Tenant not found')
   await service.from('relationships').delete().eq('id', id).eq('tenant_id', tenant.id)

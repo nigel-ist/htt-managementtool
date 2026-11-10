@@ -2,14 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { MarketIntelEntry, IntelCategory } from './types'
 
 async function resolveTenantId(slug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', slug).single()
   return data?.id ?? null
 }
@@ -23,7 +23,7 @@ export async function getIntelEntries(tenantSlug: string): Promise<MarketIntelEn
   if (!claims) return []
   const tenantId = await resolveTenantId(tenantSlug)
   if (!tenantId) return []
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('market_intel').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false })
   return (data ?? []).map(mapRow)
 }
@@ -33,7 +33,7 @@ export async function getIntelEntry(tenantSlug: string, id: string): Promise<Mar
   if (!claims) return null
   const tenantId = await resolveTenantId(tenantSlug)
   if (!tenantId) return null
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('market_intel').select('*').eq('tenant_id', tenantId).eq('id', id).single()
   if (!data) return null
   return mapRow(data)

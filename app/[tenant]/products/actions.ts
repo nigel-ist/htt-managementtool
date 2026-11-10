@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import type { Product } from './types'
 
@@ -12,7 +12,7 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   if (claims.tenant_id) return claims.tenant_id
 
   // IL admin viewing a tenant — resolve by slug
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   return data?.id ?? null
 }
@@ -21,7 +21,7 @@ export async function getProducts(tenantSlug: string): Promise<Product[]> {
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -40,7 +40,7 @@ export async function getProduct(tenantSlug: string, productId: string): Promise
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -60,7 +60,7 @@ export async function createProduct(tenantSlug: string, formData: FormData) {
   const type = formData.get('type') as string
   const description = formData.get('description') as string
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from('products').insert({
     tenant_id: tenantId,
     name: name.trim(),
@@ -86,7 +86,7 @@ export async function updateProduct(
   const type = formData.get('type') as string
   const description = formData.get('description') as string
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('products')
     .update({ name: name.trim(), type, description: description?.trim() || null })
@@ -103,7 +103,7 @@ export async function deleteProduct(tenantSlug: string, productId: string) {
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) throw new Error('Unauthorized')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('products')
     .delete()

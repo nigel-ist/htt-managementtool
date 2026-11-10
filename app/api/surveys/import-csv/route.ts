@@ -13,7 +13,7 @@
  * Auth: JWT claims required; tenant ownership verified.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 
 function parseCSV(text: string): Array<Record<string, string>> {
   const lines = text.trim().split('\n').filter(l => l.trim())
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify survey ownership
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   let tenantId = claims.tenant_id
   if (!tenantId) {
     const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()

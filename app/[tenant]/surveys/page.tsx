@@ -6,7 +6,7 @@
  */
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { Survey } from '@/app/[tenant]/surveys/types'
 import { STATUS_META, SURVEY_STATUSES } from '@/app/[tenant]/surveys/types'
 import SeedSurveysButton from './_components/SeedSurveysButton'
@@ -19,7 +19,7 @@ async function getSurveys(tenantSlug: string): Promise<Survey[] | null> {
   const claims = await getServerJWTClaims()
   if (!claims) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   let tenantId = claims.tenant_id
   if (!tenantId) {

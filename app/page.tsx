@@ -5,7 +5,7 @@
  * Unauthenticated → /login
  */
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 
 export default async function RootPage() {
@@ -21,7 +21,7 @@ export default async function RootPage() {
 
   if (claims.tenant_id) {
     // Look up the tenant slug from the tenant_id
-    const supabase = await createClient()
+    const supabase = createServiceClient()
     const { data: tenant } = await supabase
       .from('tenants')
       .select('slug')

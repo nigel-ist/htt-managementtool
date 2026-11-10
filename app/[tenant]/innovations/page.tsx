@@ -12,7 +12,7 @@ import InnovationPipelineAnalysisPanel from './analysis-panel'
 import HttCoach from '@/components/htt/HttCoach'
 import { getHttStageForUser } from '@/lib/htt/stage'
 import { notFound } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 
 interface InnovationsPageProps {
   params: { tenant: string }
@@ -46,7 +46,7 @@ async function getInnovations(tenantSlug: string): Promise<Innovation[] | null> 
   const claims = await getServerJWTClaims()
   if (!claims) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   let tenantId = claims.tenant_id
   if (!tenantId) {

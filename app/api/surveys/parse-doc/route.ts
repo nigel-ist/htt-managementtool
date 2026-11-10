@@ -10,7 +10,7 @@
  * Auth: JWT claims required; tenant ownership verified via surveyId lookup.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { SurveyQuestion, QuestionType } from '@/app/[tenant]/surveys/types'
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify survey belongs to tenant
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   let tenantId = claims.tenant_id
   if (!tenantId) {
     const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()

@@ -2,14 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { Idea, IdeaStatus } from './types'
 
 async function resolveTenantId(slug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', slug).single()
   return data?.id ?? null
 }
@@ -20,7 +20,7 @@ export async function getIdeas(tenantSlug: string): Promise<Idea[]> {
   const tenantId = await resolveTenantId(tenantSlug)
   if (!tenantId) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('ideas')
     .select('id, title, description, status, tags, submitted_by, created_at, updated_at')
@@ -36,7 +36,7 @@ export async function getIdea(tenantSlug: string, ideaId: string): Promise<Idea 
   const tenantId = await resolveTenantId(tenantSlug)
   if (!tenantId) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('ideas')
     .select('id, title, description, status, tags, submitted_by, created_at, updated_at')

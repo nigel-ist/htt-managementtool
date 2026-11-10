@@ -5,7 +5,7 @@
  * Lists members and manages per-user module overrides.
  */
 import { revalidatePath } from 'next/cache'
-import { createClient, createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import type { MemberRole } from '@/lib/types/database'
 
 async function getAdminTenantId(tenantSlug: string): Promise<string | null> {
@@ -18,7 +18,7 @@ async function getAdminTenantId(tenantSlug: string): Promise<string | null> {
 
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase.from('tenants').select('id').eq('slug', tenantSlug).single()
   return data?.id ?? null
 }
@@ -35,7 +35,7 @@ export async function getMembers(tenantSlug: string): Promise<MemberRow[]> {
   const tenantId = await getAdminTenantId(tenantSlug)
   if (!tenantId) return []
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const serviceClient = createServiceClient()
 
   const { data: members } = await supabase
@@ -75,7 +75,7 @@ export async function getUserModuleStates(
   const tenantId = await getAdminTenantId(tenantSlug)
   if (!tenantId) return { states: [], userRole: null }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { ROLE_ORDER } = await import('@/lib/modules/constants')
 
   const [memberRes, enabledRes, rolesRes, overridesRes] = await Promise.all([
@@ -142,7 +142,7 @@ export async function saveUserModuleOverrides(
   const tenantId = await getAdminTenantId(tenantSlug)
   if (!tenantId) return { error: 'Unauthorized' }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const toUpsert: { tenant_id: string; user_id: string; module_key: string; can_access: boolean }[] = []
   const toDelete: string[] = []

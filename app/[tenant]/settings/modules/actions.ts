@@ -5,7 +5,7 @@
  * Controls the minimum role required to see each module across this tenant.
  */
 import { revalidatePath } from 'next/cache'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 
 async function requireAdminTenantId(tenantSlug: string): Promise<string> {
   const claims = await getServerJWTClaims()
@@ -15,7 +15,7 @@ async function requireAdminTenantId(tenantSlug: string): Promise<string> {
     claims.is_il_admin || claims.role === 'admin' || claims.role === 'owner'
   if (!isAdmin) throw new Error('Forbidden')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   if (claims.tenant_id) return claims.tenant_id
 
@@ -36,7 +36,7 @@ async function requireAdminTenantId(tenantSlug: string): Promise<string> {
 export async function getModuleRoleSettings(
   tenantSlug: string
 ): Promise<{ enabledModules: string[]; roleDefaults: Record<string, string> }> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const claims = await getServerJWTClaims()
   if (!claims) return { enabledModules: [], roleDefaults: {} }
@@ -85,7 +85,7 @@ export async function saveModuleRoleSettings(
     return { error: (e as Error).message }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Read all enabled modules so we know what to upsert
   const { data: enabledRows } = await supabase

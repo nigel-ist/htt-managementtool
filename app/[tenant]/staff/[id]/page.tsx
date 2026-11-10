@@ -3,7 +3,7 @@
  */
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 import { updateStaffMember, deleteStaffMember } from '../actions'
 import SkillsForm from '../_components/SkillsForm'
 import type { Skill } from '../_components/SkillsForm'
@@ -24,7 +24,7 @@ async function getStaffMember(tenantSlug: string, staffId: string): Promise<Staf
   const claims = await getServerJWTClaims()
   if (!claims) return null
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   let tenantId = claims.tenant_id
   if (!tenantId) {

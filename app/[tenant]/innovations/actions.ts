@@ -2,14 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 
 async function getTenantId(tenantSlug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('tenants')
     .select('id')
@@ -28,7 +28,7 @@ export async function createInnovation(tenantSlug: string, formData: FormData) {
 
   if (!title || !stage) throw new Error('Title and stage are required')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from('innovations').insert({
     tenant_id: tenantId,
     title,
@@ -56,7 +56,7 @@ export async function updateInnovation(
 
   if (!title || !stage) throw new Error('Title and stage are required')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Fetch existing data to merge (preserve any other JSONB fields)
   const { data: existing } = await supabase
@@ -87,7 +87,7 @@ export async function deleteInnovation(tenantSlug: string, innovationId: string)
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) throw new Error('Unauthorized')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('innovations')
     .delete()

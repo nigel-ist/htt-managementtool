@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient, getServerJWTClaims } from '@/lib/supabase/server'
+import { createServiceClient, getServerJWTClaims } from '@/lib/supabase/server'
 
 export interface Skill {
   name: string
@@ -15,7 +15,7 @@ async function getTenantId(tenantSlug: string): Promise<string | null> {
   if (!claims) return null
   if (claims.tenant_id) return claims.tenant_id
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data } = await supabase
     .from('tenants')
     .select('id')
@@ -54,7 +54,7 @@ export async function createStaffMember(tenantSlug: string, formData: FormData) 
 
   if (!name) throw new Error('Name is required')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from('staff_skills').insert({
     tenant_id: tenantId,
     name,
@@ -84,7 +84,7 @@ export async function updateStaffMember(
 
   if (!name) throw new Error('Name is required')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('staff_skills')
     .update({ name, department, role_title, skills })
@@ -101,7 +101,7 @@ export async function deleteStaffMember(tenantSlug: string, staffId: string) {
   const tenantId = await getTenantId(tenantSlug)
   if (!tenantId) throw new Error('Unauthorized')
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase
     .from('staff_skills')
     .delete()
