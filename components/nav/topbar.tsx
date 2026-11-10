@@ -3,14 +3,16 @@
 /**
  * Workspace topbar — shows page title and user context.
  * On mobile, shows a hamburger button to open the sidebar drawer.
+ * Uses SidebarContext to call openSidebar() without needing a prop
+ * passed across the Server → Client Component boundary.
  */
 import { usePathname } from 'next/navigation'
+import { useSidebar } from './sidebar-context'
 
 interface TopbarProps {
   tenantName: string
   tenantSlug: string
   isIlAdmin?: boolean
-  onMenuOpen?: () => void
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -41,9 +43,10 @@ function getPageTitle(pathname: string, tenantSlug: string): string {
   return PAGE_LABELS[segment] ?? segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
 }
 
-export default function Topbar({ tenantName, tenantSlug, isIlAdmin, onMenuOpen }: TopbarProps) {
+export default function Topbar({ tenantName, tenantSlug, isIlAdmin }: TopbarProps) {
   const pathname = usePathname()
   const title = getPageTitle(pathname, tenantSlug)
+  const { openSidebar } = useSidebar()
 
   return (
     <header className="h-12 flex items-center justify-between px-4 border-b border-[rgb(var(--border))] bg-[rgb(var(--surface))] flex-shrink-0">
@@ -52,7 +55,7 @@ export default function Topbar({ tenantName, tenantSlug, isIlAdmin, onMenuOpen }
         <button
           type="button"
           className="lg:hidden p-1.5 rounded text-[rgb(var(--text-3))] hover:text-[rgb(var(--text-1))] hover:bg-[rgb(var(--surface-2))] transition-colors"
-          onClick={onMenuOpen}
+          onClick={openSidebar}
           aria-label="Open navigation"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

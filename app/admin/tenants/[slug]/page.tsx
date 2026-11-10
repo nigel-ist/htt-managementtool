@@ -37,7 +37,7 @@ async function getTenantDetail(slug: string) {
   const [brandingResult, modulesResult, membersResult] = await Promise.all([
     supabase.from('tenant_branding').select('*').eq('tenant_id', tenant.id),
     supabase.from('tenant_modules').select('*').eq('tenant_id', tenant.id),
-    supabase.from('tenant_members').select('id, role, is_active, created_at, user_id').eq('tenant_id', tenant.id),
+    supabase.from('tenant_members').select('id, role, is_active, invited_at, user_id').eq('tenant_id', tenant.id),
   ])
 
   if (brandingResult.error) console.error('[admin/tenants/slug] branding error:', brandingResult.error)
