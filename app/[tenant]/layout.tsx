@@ -85,23 +85,28 @@ function buildBrandingCss(branding: TenantBranding | null): string {
 export default async function TenantLayout({ children, params }: TenantLayoutProps) {
   const { tenant: slug } = params
 
+  console.log('[TenantLayout] step 1: getTenantBranding', slug)
   const tenantData = await getTenantBranding(slug)
   if (!tenantData) notFound()
+  console.log('[TenantLayout] step 2: tenant ok, id=', tenantData.tenantId)
 
   const claims = await getServerJWTClaims()
   if (!claims) redirect(`/login?redirect=/${slug}/dashboard`)
+  console.log('[TenantLayout] step 3: claims ok, is_il_admin=', claims.is_il_admin, 'role=', JSON.stringify(claims.role))
 
   const isIlAdmin = claims.is_il_admin
   const isMember  = claims.tenant_id === tenantData.tenantId
 
   if (!isIlAdmin && !isMember) redirect('/')
 
+  console.log('[TenantLayout] step 4: getAccessibleModules')
   const accessibleModules = await getAccessibleModules(
     tenantData.tenantId,
     claims.sub,
     claims.role,
     isIlAdmin
   )
+  console.log('[TenantLayout] step 5: modules ok, count=', accessibleModules.size)
 
   const brandingCss = buildBrandingCss(tenantData.branding)
 
