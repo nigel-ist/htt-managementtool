@@ -4,7 +4,7 @@
  * IL admin only.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import { MODULE_KEYS } from '@/lib/types/database'
 import { z } from 'zod'
@@ -34,7 +34,7 @@ export async function PUT(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { tenantId } = params
   const { enabled_modules } = parsed.data
 

@@ -9,7 +9,7 @@
  *    Uses AppShell (client) for mobile drawer support.
  */
 import { notFound, redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getServerJWTClaims } from '@/lib/supabase/server'
 import type { TenantBranding } from '@/lib/types/database'
 import { getAccessibleModules } from '@/lib/modules/access'
@@ -27,7 +27,7 @@ async function getTenantBranding(slug: string): Promise<{
   tenantName: string
   branding: TenantBranding | null
 } | null> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: tenant } = await supabase
     .from('tenants')

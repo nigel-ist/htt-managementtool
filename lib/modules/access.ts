@@ -13,7 +13,7 @@
  * IL admins bypass all checks and see every enabled module.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/lib/types/database'
 import { ROLE_ORDER } from './constants'
 
@@ -23,7 +23,7 @@ export async function getAccessibleModules(
   userRole: MemberRole | null,
   isIlAdmin: boolean
 ): Promise<Set<string>> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // ── 1. Fetch enabled modules ─────────────────────────────────────────────
   const { data: enabledRows } = await supabase
