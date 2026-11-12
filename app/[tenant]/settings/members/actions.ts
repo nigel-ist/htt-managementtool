@@ -22,7 +22,17 @@ async function requireAdmin(tenantSlug: string): Promise<string | null> {
   const claims = await getServerJWTClaims()
   if (!claims) return null
   if (claims.is_il_admin) return claims.sub
-  if (claims.tenant_slug !== tenantSlug) return null
+
+  // JWT carries tenant_id (UUID), not slug — resolve to compare
+  if (!claims.tenant_id) return null
+  const supabase = createServiceClient()
+  const { data: tenant } = await supabase
+    .from('tenants')
+    .select('id')
+    .eq('slug', tenantSlug)
+    .single()
+  if (!tenant || claims.tenant_id !== tenant.id) return null
+
   if (claims.role !== 'owner' && claims.role !== 'admin') return null
   return claims.sub
 }
