@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { Product } from './types'
 import { PRODUCT_TYPES, TYPE_META, BUSINESSES, CATEGORY_TAGS } from './types'
+import { getScore } from './score-utils'
 import HealthCircle from './health-circle'
 import OpportunityMatrix from './opportunity-matrix'
 import PerformanceMetrics from './performance-metrics'
@@ -24,19 +25,19 @@ interface Props {
   products: Product[]
   tenantSlug: string
   initialTab: string
+  fitLabel?: string
 }
 
-export default function ProductsClient({ products, tenantSlug, initialTab }: Props) {
+export default function ProductsClient({ products, tenantSlug, initialTab, fitLabel = 'Fit' }: Props) {
   const validTab = TABS.find((t) => t.key === initialTab)?.key ?? 'matrix'
   const [activeTab, setActiveTab] = useState<Tab>(validTab)
 
-  const stageProducts = PRODUCT_TYPES.includes(activeTab as any)
+  const stageProducts = PRODUCT_TYPES.includes(activeTab as Product['type'])
     ? products.filter((p) => p.type === activeTab)
     : []
 
   return (
     <div>
-      {/* Tab bar */}
       <div className="flex gap-0.5 mb-6 border-b border-[rgb(var(--border))] overflow-x-auto">
         {TABS.map((tab) => {
           const count = tab.key === 'matrix' || tab.key === 'metrics'
@@ -67,19 +68,16 @@ export default function ProductsClient({ products, tenantSlug, initialTab }: Pro
         })}
       </div>
 
-      {/* Matrix tab */}
       {activeTab === 'matrix' && (
         <OpportunityMatrix products={products} tenantSlug={tenantSlug} />
       )}
 
-      {/* Stage tabs */}
-      {PRODUCT_TYPES.includes(activeTab as any) && (
-        <StageGrid products={stageProducts} tenantSlug={tenantSlug} type={activeTab as any} />
+      {PRODUCT_TYPES.includes(activeTab as Product['type']) && (
+        <StageGrid products={stageProducts} tenantSlug={tenantSlug} type={activeTab as Product['type']} />
       )}
 
-      {/* Metrics tab */}
       {activeTab === 'metrics' && (
-        <PerformanceMetrics products={products} tenantSlug={tenantSlug} />
+        <PerformanceMetrics products={products} tenantSlug={tenantSlug} fitLabel={fitLabel} />
       )}
     </div>
   )
@@ -107,7 +105,7 @@ function StageGrid({ products, tenantSlug, type }: { products: Product[]; tenant
 function ProductCard({ product, tenantSlug }: { product: Product; tenantSlug: string }) {
   const meta = TYPE_META[product.type]
   const d = product.data ?? {}
-  const fit = d.scores?.brinkman_fit
+  const fit = getScore(product, 'brinkman_fit')
   const bus = (d.business_units ?? []).slice(0, 3)
   const tags = (d.category_tags ?? []).slice(0, 2)
 
@@ -116,13 +114,11 @@ function ProductCard({ product, tenantSlug }: { product: Product; tenantSlug: st
       href={`/${tenantSlug}/products/${product.id}`}
       className="group block p-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] hover:border-[rgb(var(--accent))] transition-colors"
     >
-      {/* Top row: name + fit circle */}
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-[rgb(var(--text-1))] leading-tight group-hover:text-[rgb(var(--accent))] transition-colors">
             {product.name}
           </h3>
-          {/* BU badges */}
           {bus.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
               {bus.map((code) => {
@@ -140,7 +136,6 @@ function ProductCard({ product, tenantSlug }: { product: Product; tenantSlug: st
             </div>
           )}
         </div>
-        {/* Health circle */}
         {fit != null && (
           <div className="shrink-0">
             <HealthCircle value={fit} size={44} strokeWidth={4} />
@@ -148,30 +143,27 @@ function ProductCard({ product, tenantSlug }: { product: Product; tenantSlug: st
         )}
       </div>
 
-      {/* Description */}
       {product.description && (
         <p className="mt-2 text-sm text-[rgb(var(--text-2))] line-clamp-2">{product.description}</p>
       )}
 
-      {/* Sub-score chips */}
-      {d.scores && (
-        <div className="mt-3 flex flex-wrap gap-1">
-          {(['opportunity','competition','revenue'] as const).map((k) => {
-            const v = d.scores?.[k]
-            if (v == null) return null
-            const labels: Record<string, string> = { opportunity: 'Opp', competition: 'Adv', revenue: 'Rev' }
-            return (
-              <span key={k} className={`text-[10px] font-medium px-1.5 py-0.5 rounded tabular-nums
-                ${v >= 70 ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                  : v >= 40 ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
-                  : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}
-              >
-                {labels[k]} {v}
-              </span>
-            )
-          })}
-        </div>
-      )}
+      {/* Sub-score chips using getScore to handle both formats */}
+      <div className="mt-3 flex flex-wrap gap-1">
+        {(['opportunity','competition','revenue'] as const).map((k) => {
+          const v = getScore(product, k)
+          if (v == null) return null
+          const labels: Record<string, string> = { opportunity: 'Opp', competition: 'Adv', revenue: 'Rev' }
+          return (
+            <span key={k} className={`text-[10px] font-medium px-1.5 py-0.5 rounded tabular-nums
+              ${v >= 70 ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                : v >= 40 ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+                : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}
+            >
+              {labels[k]} {v}
+            </span>
+          )
+        })}
+      </div>
     </Link>
   )
 }

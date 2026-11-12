@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Product } from './types'
 import { TYPE_META } from './types'
+import { getScore } from './score-utils'
 import Link from 'next/link'
 
 interface Props {
@@ -28,21 +29,18 @@ function scoreColor(type: Product['type']): string {
 export default function OpportunityMatrix({ products, tenantSlug }: Props) {
   const [hovered, setHovered] = useState<string | null>(null)
 
-  // Filter products that have opportunity + competition scores
   const plotted = products.filter(
-    (p) => p.data?.scores?.opportunity != null && p.data?.scores?.competition != null
+    (p) => getScore(p, 'opportunity') != null && getScore(p, 'competition') != null
   )
   const unplotted = products.filter(
-    (p) => p.data?.scores?.opportunity == null || p.data?.scores?.competition == null
+    (p) => getScore(p, 'opportunity') == null || getScore(p, 'competition') == null
   )
 
-  // Map score 0-100 to SVG coordinates
   function px(opp: number) { return PAD + (opp / 100) * (W - PAD * 2) }
   function py(comp: number) { return H - PAD - (comp / 100) * (H - PAD * 2) }
 
-  // Revenue strength → circle radius (10–36)
   function radius(p: Product) {
-    const rev = p.data?.scores?.revenue ?? 50
+    const rev = getScore(p, 'revenue') ?? 50
     return 10 + (rev / 100) * 26
   }
 
@@ -54,21 +52,17 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
           className="w-full max-w-[700px] mx-auto rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))]"
           style={{ minHeight: 300 }}
         >
-          {/* Quadrant shading */}
           <rect x={PAD} y={PAD} width={(W - PAD * 2) / 2} height={(H - PAD * 2) / 2} fill="rgba(220,252,231,0.35)" />
           <rect x={PAD + (W - PAD * 2) / 2} y={PAD} width={(W - PAD * 2) / 2} height={(H - PAD * 2) / 2} fill="rgba(220,252,231,0.6)" />
           <rect x={PAD} y={PAD + (H - PAD * 2) / 2} width={(W - PAD * 2) / 2} height={(H - PAD * 2) / 2} fill="rgba(254,243,199,0.4)" />
           <rect x={PAD + (W - PAD * 2) / 2} y={PAD + (H - PAD * 2) / 2} width={(W - PAD * 2) / 2} height={(H - PAD * 2) / 2} fill="rgba(239,246,255,0.5)" />
 
-          {/* Grid lines */}
           <line x1={PAD} y1={PAD + (H - PAD * 2) / 2} x2={W - PAD} y2={PAD + (H - PAD * 2) / 2} stroke="rgb(var(--border))" strokeWidth="1" strokeDasharray="4,4" />
           <line x1={PAD + (W - PAD * 2) / 2} y1={PAD} x2={PAD + (W - PAD * 2) / 2} y2={H - PAD} stroke="rgb(var(--border))" strokeWidth="1" strokeDasharray="4,4" />
 
-          {/* Axes */}
           <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="rgb(var(--text-3))" strokeWidth="1.5" />
           <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="rgb(var(--text-3))" strokeWidth="1.5" />
 
-          {/* Axis labels */}
           <text x={W / 2} y={H - 8} textAnchor="middle" className="fill-[rgb(var(--text-3))]" fontSize="11" fontWeight="500">
             Opportunity →
           </text>
@@ -77,21 +71,21 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
             Competitive Advantage →
           </text>
 
-          {/* Quadrant labels */}
           <text x={PAD + 8} y={PAD + 16} className="fill-[rgb(var(--text-3))]" fontSize="9" opacity="0.7">Niche / Defend</text>
           <text x={PAD + (W - PAD * 2) / 2 + 8} y={PAD + 16} className="fill-[rgb(var(--text-3))]" fontSize="9" opacity="0.7">Stars / Invest</text>
           <text x={PAD + 8} y={PAD + (H - PAD * 2) / 2 + 16} className="fill-[rgb(var(--text-3))]" fontSize="9" opacity="0.7">Question Marks</text>
           <text x={PAD + (W - PAD * 2) / 2 + 8} y={PAD + (H - PAD * 2) / 2 + 16} className="fill-[rgb(var(--text-3))]" fontSize="9" opacity="0.7">Growth / Develop</text>
 
-          {/* Product circles */}
           {plotted.map((p) => {
-            const opp  = p.data!.scores!.opportunity!
-            const comp = p.data!.scores!.competition!
+            const opp  = getScore(p, 'opportunity')!
+            const comp = getScore(p, 'competition')!
             const cx   = px(opp)
             const cy   = py(comp)
             const r    = radius(p)
             const isHovered = hovered === p.id
             const color = scoreColor(p.type)
+            const rev = getScore(p, 'revenue')
+            const fit = getScore(p, 'brinkman_fit')
 
             return (
               <g key={p.id}>
@@ -107,19 +101,16 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
                     onMouseLeave={() => setHovered(null)}
                   />
                 </Link>
-                {/* Label */}
                 <text
                   x={cx} y={cy + r + 11}
                   textAnchor="middle"
                   fontSize="9"
                   fontWeight={isHovered ? '700' : '500'}
                   className="fill-[rgb(var(--text-1))] pointer-events-none"
-                  style={{ maxWidth: 70 }}
                 >
                   {p.name.length > 16 ? p.name.slice(0, 15) + '…' : p.name}
                 </text>
 
-                {/* Tooltip on hover */}
                 {isHovered && (
                   <g>
                     <rect
@@ -134,10 +125,10 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
                       {p.name.length > 20 ? p.name.slice(0, 18) + '…' : p.name}
                     </text>
                     <text x={cx} y={cy - r - 22} textAnchor="middle" fontSize="9" className="fill-[rgb(var(--text-2))] pointer-events-none">
-                      Opp: {opp} · Adv: {comp} · Rev: {p.data?.scores?.revenue ?? '?'}
+                      Opp: {opp} · Adv: {comp} · Rev: {rev ?? '?'}
                     </text>
                     <text x={cx} y={cy - r - 10} textAnchor="middle" fontSize="9" className="fill-[rgb(var(--text-2))] pointer-events-none">
-                      Fit: {p.data?.scores?.brinkman_fit ?? '?'}% · {TYPE_META[p.type].label}
+                      Fit: {fit ?? '?'}% · {TYPE_META[p.type].label}
                     </text>
                   </g>
                 )}
@@ -147,7 +138,6 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
         </svg>
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap gap-3 text-xs">
         {Object.entries(TYPE_META).map(([type, meta]) => (
           <div key={type} className="flex items-center gap-1.5">
@@ -158,11 +148,10 @@ export default function OpportunityMatrix({ products, tenantSlug }: Props) {
         <span className="text-[rgb(var(--text-3))] ml-2">· Circle size = Revenue strength</span>
       </div>
 
-      {/* Unplotted products */}
       {unplotted.length > 0 && (
         <div className="text-xs text-[rgb(var(--text-3))] border border-dashed border-[rgb(var(--border))] rounded-lg px-4 py-3">
           <span className="font-medium text-[rgb(var(--text-2))]">{unplotted.length} product{unplotted.length > 1 ? 's' : ''} not shown</span>
-          {' '}— Opportunity and Competition scores needed to appear on the matrix:{' '}
+          {' '}— Opportunity and Competition scores needed:{' '}
           {unplotted.map((p, i) => (
             <span key={p.id}>
               <Link href={`/${tenantSlug}/products/${p.id}`} className="underline hover:text-[rgb(var(--accent))]">{p.name}</Link>

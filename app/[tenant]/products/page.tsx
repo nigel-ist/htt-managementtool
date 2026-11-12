@@ -1,8 +1,16 @@
 import { getProducts } from './actions'
-import { PRODUCT_TYPES, TYPE_META, BUSINESSES, CATEGORY_TAGS } from './types'
+import { PRODUCT_TYPES } from './types'
 import Link from 'next/link'
 import ProductsClient from './products-client'
 import ProductAnalysisPanel from './analysis-panel'
+
+/** Convert tenant slug to a display name: "brinkman" → "Brinkman", "my-company" → "My Company" */
+function tenantDisplayName(slug: string): string {
+  return slug
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
 
 export default async function ProductsPage({ params, searchParams }: {
   params: { tenant: string }
@@ -12,9 +20,10 @@ export default async function ProductsPage({ params, searchParams }: {
   const { tab = 'matrix' } = await Promise.resolve(searchParams)
   const products = await getProducts(tenant)
 
+  const fitLabel = `${tenantDisplayName(tenant)} Fit`
+
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[rgb(var(--text-1))]">Products</h1>
@@ -30,11 +39,11 @@ export default async function ProductsPage({ params, searchParams }: {
         </Link>
       </div>
 
-      {/* Client-side tabbed content */}
       <ProductsClient
         products={products}
         tenantSlug={tenant}
         initialTab={tab}
+        fitLabel={fitLabel}
       />
 
       <ProductAnalysisPanel tenantSlug={tenant} products={products} />

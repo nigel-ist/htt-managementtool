@@ -3,6 +3,7 @@ import { getProduct, updateProduct, deleteProduct } from '../actions'
 import { PRODUCT_TYPES, TYPE_META, BUSINESSES, CATEGORY_TAGS, SCORE_FIELDS } from '../types'
 import Link from 'next/link'
 import ProductAIPanel from '../product-ai-panel'
+import PricingEditor from '../pricing-editor'
 
 export default async function ProductDetailPage({ params }: { params: { tenant: string; id: string } }) {
   const { tenant, id } = await Promise.resolve(params)
@@ -175,6 +176,3 @@ export default async function ProductDetailPage({ params }: { params: { tenant: 
     </div>
   )
 }
-
-// Client-side pricing editor sub-component
-import PricingEditor from '../pricing-editor'
