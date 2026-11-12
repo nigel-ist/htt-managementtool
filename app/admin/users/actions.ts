@@ -48,7 +48,7 @@ export async function getAllUsers(): Promise<AdminUserRow[]> {
     const { data: authData } = await supabase.auth.admin.getUserById(uid)
     const memberRows = members.filter(m => m.user_id === uid)
     const member = memberRows[0]
-    const tenant = (member?.tenants as { name: string; slug: string } | null)
+    const tenant = (member?.tenants as unknown as { name: string; slug: string } | null)
 
     const metaName = authData?.user?.user_metadata?.full_name as string | undefined
 
