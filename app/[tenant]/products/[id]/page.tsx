@@ -68,7 +68,7 @@ export default async function ProductDetailPage({ params }: { params: { tenant: 
                   type="checkbox"
                   name="business_units"
                   value={b.code}
-                  defaultChecked={(d.business_units ?? []).includes(b.code)}
+                  defaultChecked={(Array.isArray(d.business_units) ? d.business_units : []).includes(b.code)}
                   className="w-4 h-4 rounded accent-[rgb(var(--accent))]"
                 />
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${b.color}`}>{b.code}</span>
@@ -88,7 +88,7 @@ export default async function ProductDetailPage({ params }: { params: { tenant: 
                   type="checkbox"
                   name="category_tags"
                   value={c.code}
-                  defaultChecked={(d.category_tags ?? []).includes(c.code)}
+                  defaultChecked={(Array.isArray(d.category_tags) ? d.category_tags : []).includes(c.code)}
                   className="w-4 h-4 rounded accent-[rgb(var(--accent))]"
                 />
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.color}`}>{c.code}</span>
@@ -102,27 +102,27 @@ export default async function ProductDetailPage({ params }: { params: { tenant: 
         <div className={sectionCls}>
           <label className={labelCls}>Key Features</label>
           <p className="text-xs text-[rgb(var(--text-3))] mb-1">One per line</p>
-          <textarea name="features" rows={4} defaultValue={(d.features ?? []).join('\n')} className={`${inputCls} resize-none`} placeholder="Feature one&#10;Feature two&#10;Feature three" />
+          <textarea name="features" rows={4} defaultValue={(Array.isArray(d.features) ? d.features : []).join('\n')} className={`${inputCls} resize-none`} placeholder="Feature one&#10;Feature two&#10;Feature three" />
         </div>
 
         {/* Deliverables */}
         <div>
           <label className={labelCls}>Deliverables / Outcomes</label>
           <p className="text-xs text-[rgb(var(--text-3))] mb-1">One per line</p>
-          <textarea name="deliverables" rows={4} defaultValue={(d.deliverables ?? []).join('\n')} className={`${inputCls} resize-none`} placeholder="Deliverable one&#10;Deliverable two" />
+          <textarea name="deliverables" rows={4} defaultValue={(Array.isArray(d.deliverables) ? d.deliverables : []).join('\n')} className={`${inputCls} resize-none`} placeholder="Deliverable one&#10;Deliverable two" />
         </div>
 
         {/* Differentiators */}
         <div>
           <label className={labelCls}>Market Differentiators</label>
           <p className="text-xs text-[rgb(var(--text-3))] mb-1">One per line</p>
-          <textarea name="differentiators" rows={3} defaultValue={(d.differentiators ?? []).join('\n')} className={`${inputCls} resize-none`} placeholder="What sets this apart from competitors?" />
+          <textarea name="differentiators" rows={3} defaultValue={(Array.isArray(d.differentiators) ? d.differentiators : []).join('\n')} className={`${inputCls} resize-none`} placeholder="What sets this apart from competitors?" />
         </div>
 
         {/* Pricing */}
         <div className={sectionCls}>
           <label className={labelCls}>Pricing</label>
-          <PricingEditor initial={d.pricing ?? []} />
+          <PricingEditor initial={Array.isArray(d.pricing) ? d.pricing : []} />
           <div className="mt-3">
             <label className="text-xs text-[rgb(var(--text-2))] mb-1 block">Pricing Notes</label>
             <textarea name="pricing_notes" rows={2} defaultValue={d.pricing_notes ?? ''} className={`${inputCls} resize-none`} placeholder="e.g. Volume discounts available, project-based pricing" />
